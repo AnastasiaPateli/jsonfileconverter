@@ -1,39 +1,22 @@
-let jsonData;
-let flatData = [];
-
-function preload() {
-  jsonData = loadJSON("136332321.json");
-}
-
-function setup() {
-  createCanvas(800, 1000);
-  background(255);
-  textSize(14);
-  fill(0);
-
-  // Flatten the JSON
-  flattenJSON(jsonData);
-
-  // Display as two-column list
-  let y = 30;
-  for (let i = 0; i < flatData.length; i++) {
-    let item = flatData[i];
-    text(item.key, 50, y);      // Left column
-    text(item.value, 400, y);   // Right column
-    y += 20;
-  }
-}
-
-function flattenJSON(obj, prefix = "") {
-  for (let key in obj) {
-    let value = obj[key];
-    let newKey = prefix ? `${prefix}.${key}` : key;
-
-    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      flattenJSON(value, newKey); // Recursively flatten
-    } else {
-      flatData.push({ key: newKey, value: value });
-    }
-  }
-}
-
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>JSON Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <script src="sketch.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      #upload {
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Upload a JSON File</h2>
+    <input type="file" id="upload" accept=".json" />
+    <div id="canvas-container"></div>
+  </body>
+</html>
