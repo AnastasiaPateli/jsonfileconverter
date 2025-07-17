@@ -2,31 +2,59 @@ let flatData = [];
 let agreementText = "";
 
 function setup() {
-  let canvas = createCanvas(800, 1000);
-  canvas.parent("canvas-container");
-  background(255);
-  textSize(14);
-  fill(0);
+  noCanvas(); // We won't use canvas for this part
 
-  // Set up file input listener
   let fileInput = select("#upload");
   fileInput.changed(handleFile);
+}
 
-  // Set up download button listener
-  select("#downloadBtn").mousePressed(() => {
-    if (agreementText) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+function handleFile() {
+  let file = this.elt.files[0];
 
-      // Split long text into lines for better formatting
-      const lines = doc.splitTextToSize(agreementText, 180);
-      doc.text(lines, 10, 20);
+  if (file && file.type === "application/json") {
+    let reader = new FileReader();
 
-      doc.save("agreement.pdf");
-    } else {
-      alert("Please upload a JSON file first.");
-    }
-  });
+    reader.onload = function (e) {
+      let content = e.target.result;
+
+      try {
+        let json = JSON.parse(content);
+        displayJSON(json, select("#json-viewer"));
+      } catch (err) {
+        console.error("Invalid JSON:", err);
+      }
+    };
+
+    reader.readAsText(file);
+  }
+}
+
+function setup() {
+  noCanvas(); // We won't use canvas for this part
+
+  let fileInput = select("#upload");
+  fileInput.changed(handleFile);
+}
+
+function handleFile() {
+  let file = this.elt.files[0];
+
+  if (file && file.type === "application/json") {
+    let reader = new FileReader();
+
+    reader.onload = function (e) {
+      let content = e.target.result;
+
+      try {
+        let json = JSON.parse(content);
+        displayJSON(json, select("#json-viewer"));
+      } catch (err) {
+        console.error("Invalid JSON:", err);
+      }
+    };
+
+    reader.readAsText(file);
+  }
 }
 
 function handleFile() {
