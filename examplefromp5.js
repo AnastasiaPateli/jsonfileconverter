@@ -1,4 +1,5 @@
 let flatData = [];
+let agreementText = "";
 
 function setup() {
   let canvas = createCanvas(800, 1000);
@@ -10,6 +11,22 @@ function setup() {
   // Set up file input listener
   let fileInput = select("#upload");
   fileInput.changed(handleFile);
+
+  // Set up download button listener
+  select("#downloadBtn").mousePressed(() => {
+    if (agreementText) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Split long text into lines for better formatting
+      const lines = doc.splitTextToSize(agreementText, 180);
+      doc.text(lines, 10, 20);
+
+      doc.save("agreement.pdf");
+    } else {
+      alert("Please upload a JSON file first.");
+    }
+  });
 }
 
 function handleFile() {
@@ -30,7 +47,7 @@ function handleFile() {
         redrawCanvas();
 
         // 2. Generate the agreement text
-        let agreementText = generateAgreement(json);
+        agreementText = generateAgreement(json);
 
         // 3. Display the agreement in the browser
         createP(agreementText)
@@ -47,7 +64,6 @@ function handleFile() {
   }
 }
 
-
 function redrawCanvas() {
   background(255);
   let y = 30;
@@ -58,6 +74,7 @@ function redrawCanvas() {
     y += 20;
   }
 }
+
 function flattenJSON(obj, prefix = "") {
   for (let key in obj) {
     let value = obj[key];
@@ -65,15 +82,13 @@ function flattenJSON(obj, prefix = "") {
 
     if (typeof value === "object" && value !== null) {
       if (Array.isArray(value)) {
-        // Handle arrays by indexing each item
         value.forEach((item, index) => {
           flattenJSON(item, `${newKey}[${index}]`);
         });
       } else {
-        flattenJSON(value, newKey); // Recursively flatten objects
+        flattenJSON(value, newKey);
       }
     } else {
-      // Include null, undefined, and other primitive values
       flatData.push({ key: newKey, value: value !== null ? value : "null" });
     }
   }
@@ -96,7 +111,7 @@ function generateAgreement(data) {
 κάτοικος _______ οδός _______ αρ. _______
 Α.Φ.Μ _______ Δ.Ο.Υ _______ έδρα _______
 
-[...remaining agreement text...]
+[...συνέχεια του συμφωνητικού...]
 
 Το παρόν συμφωνητικό διαβάστηκε και έγινε αποδεκτό από τους συμβαλλόμενους, υπογράφηκε από αυτούς και ο καθένας έλαβε αντίγραφο.
 `;
