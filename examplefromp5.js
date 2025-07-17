@@ -1,33 +1,6 @@
 let flatData = [];
 let agreementText = "";
 
-function setup() {
-  noCanvas(); // We won't use canvas for this part
-
-  let fileInput = select("#upload");
-  fileInput.changed(handleFile);
-}
-
-function handleFile() {
-  let file = this.elt.files[0];
-
-  if (file && file.type === "application/json") {
-    let reader = new FileReader();
-
-    reader.onload = function (e) {
-      let content = e.target.result;
-
-      try {
-        let json = JSON.parse(content);
-        displayJSON(json, select("#json-viewer"));
-      } catch (err) {
-        console.error("Invalid JSON:", err);
-      }
-    };
-
-    reader.readAsText(file);
-  }
-}
 
 function setup() {
   noCanvas(); // We won't use canvas for this part
