@@ -14,22 +14,39 @@ function setup() {
 
 function handleFile() {
   let file = this.elt.files[0];
+
   if (file && file.type === "application/json") {
     let reader = new FileReader();
+
     reader.onload = function (e) {
       let content = e.target.result;
+
       try {
         let json = JSON.parse(content);
+
+        // 1. Flatten and display the JSON
         flatData = [];
         flattenJSON(json);
         redrawCanvas();
+
+        // 2. Generate the agreement text
+        let agreementText = generateAgreement(json);
+
+        // 3. Display the agreement in the browser
+        createP(agreementText)
+          .style("white-space", "pre-wrap")
+          .style("margin", "20px")
+          .style("font-family", "Georgia, serif")
+          .style("font-size", "16px");
       } catch (err) {
         console.error("Invalid JSON:", err);
       }
     };
+
     reader.readAsText(file);
   }
 }
+
 
 function redrawCanvas() {
   background(255);
