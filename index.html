@@ -1,97 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>JSON File Converter</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+let jsonData;
+let flatData = [];
+
+function preload() {
+  jsonData = loadJSON("136332321.json");
+}
+
+function setup() {
+  createCanvas(800, 1000);
+  background(255);
+  textSize(14);
+  fill(0);
+
+  // Flatten the JSON
+  flattenJSON(jsonData);
+
+  // Display as two-column list
+  let y = 30;
+  for (let i = 0; i < flatData.length; i++) {
+    let item = flatData[i];
+    text(item.key, 50, y);      // Left column
+    text(item.value, 400, y);   // Right column
+    y += 20;
+  }
+}
+
+function flattenJSON(obj, prefix = "") {
+  for (let key in obj) {
+    let value = obj[key];
+    let newKey = prefix ? `${prefix}.${key}` : key;
+
+    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+      flattenJSON(value, newKey); // Recursively flatten
+    } else {
+      flatData.push({ key: newKey, value: value });
     }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
-    #drop-zone {
-      width: 400px;
-      height: 200px;
-      border: 2px dashed #555;
-      border-radius: 10px;
-      background-color: #fafafa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: #333;
-      font-size: 1.2em;
-    }
-
-    #output {
-      margin-top: 20px;
-      max-width: 600px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      background: #fff;
-      font-family: monospace;
-      white-space: pre-wrap;
-      overflow-x: auto;
-    }
-  </style>
-</head>
-
-<body>
-
-  <h1>JSON File Converter</h1>
-  <div id="drop-zone">Drop your .json file here</div>
-  <div id="output">File content will appear here...</div>
-
-  <script>
-    const dropZone = document.getElementById('drop-zone');
-    const output = document.getElementById('output');
-
-    // Visual feedback
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.style.borderColor = 'blue';
-      dropZone.style.background = '#e0f7ff';
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.style.borderColor = '#555';
-      dropZone.style.background = '#fafafa';
-    });
-
-    // Handle file drop
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.style.borderColor = '#555';
-      dropZone.style.background = '#fafafa';
-      const file = e.dataTransfer.files[0];
-
-      if (file && file.name.endsWith('.json')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const json = JSON.parse(event.target.result);
-            output.textContent = JSON.stringify(json, null, 2);
-          } catch (error) {
-            output.textContent = 'Invalid JSON file.';
-          }
-        };
-        reader.readAsText(file);
-      } else {
-        output.textContent = 'Please drop a valid .json file.';
-      }
-    });
-  </script>
-
-</body>
-</html>
+  }
+}
 
