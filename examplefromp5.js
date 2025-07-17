@@ -62,4 +62,26 @@ function flattenJSON(obj, prefix = "") {
   }
 }
 
+function generateAgreement(data) {
+  const fullName = `${data.applicant_detail.first_name} ${data.applicant_detail.last_name}`;
+  const fatherName = data.applicant_detail.father_name;
+  const address = `${data.applicant_detail.street || ""} ${data.applicant_detail.street_number || ""}, ${data.applicant_detail.post_code}`;
+  const tin = data.tin;
+  const taxOffice = data.applicant_detail.tax_office_code;
+
+  return `
+ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
+
+Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
+εκμισθωτής ο/η ${fullName} του ${fatherName} κάτοικος ${address}
+Α.Φ.Μ ${tin} Δ.Ο.Υ ${taxOffice}
+και αφεντέρου ο/η _______ του _______ επαγγέλματος αγρότης
+κάτοικος _______ οδός _______ αρ. _______
+Α.Φ.Μ _______ Δ.Ο.Υ _______ έδρα _______
+
+[...remaining agreement text...]
+
+Το παρόν συμφωνητικό διαβάστηκε και έγινε αποδεκτό από τους συμβαλλόμενους, υπογράφηκε από αυτούς και ο καθένας έλαβε αντίγραφο.
+`;
+}
 
