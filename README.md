@@ -5,6 +5,6 @@
   <body>
     <main>
     </main>
-    <script src="sketch.js"></script>
+    <script src="examplefromp5.js"></script>
   </body>
 </html>
