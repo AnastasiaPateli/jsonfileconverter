@@ -3,8 +3,9 @@ let agreementText = "";
 
 
 function setup() {
-  noCanvas(); // We won't use canvas for this part
+  noCanvas(); // We don't need canvas for this viewer
 
+  // Set up file input listener
   let fileInput = select("#upload");
   fileInput.changed(handleFile);
 }
@@ -23,6 +24,7 @@ function handleFile() {
         displayJSON(json, select("#json-viewer"));
       } catch (err) {
         console.error("Invalid JSON:", err);
+        alert("The uploaded file is not valid JSON.");
       }
     };
 
@@ -30,51 +32,53 @@ function handleFile() {
   }
 }
 
-function handleFile() {
-  let file = this.elt.files[0];
+function displayJSON(obj, container) {
+  container.html(""); // Clear previous content
 
-  if (file && file.type === "application/json") {
-    let reader = new FileReader();
+  const createSection = (key, value) => {
+    let section = createDiv().style("margin", "10px 0");
 
-    reader.onload = function (e) {
-      let content = e.target.result;
+    let header = createElement("button", key)
+      .style("display", "block")
+      .style("width", "100%")
+      .style("text-align", "left")
+      .style("background", "#eee")
+      .style("border", "none")
+      .style("padding", "10px")
+      .style("font-weight", "bold")
+      .style("cursor", "pointer");
 
-      try {
-        let json = JSON.parse(content);
+    let content = createDiv().style("margin-left", "20px").hide();
 
-        // 1. Flatten and display the JSON
-        flatData = [];
-        flattenJSON(json);
-        redrawCanvas();
+    header.mousePressed(() => {
+      content.style("display", content.style("display") === "none" ? "block" : "none");
+    });
 
-        // 2. Generate the agreement text
-        agreementText = generateAgreement(json);
-
-        // 3. Display the agreement in the browser
-        createP(agreementText)
-          .style("white-space", "pre-wrap")
-          .style("margin", "20px")
-          .style("font-family", "Georgia, serif")
-          .style("font-size", "16px");
-      } catch (err) {
-        console.error("Invalid JSON:", err);
+    if (typeof value === "object" && value !== null) {
+      if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          content.child(createSection(`[${index}]`, item));
+        });
+      } else {
+        for (let subKey in value) {
+          let subValue = value[subKey];
+          content.child(createSection(subKey, subValue));
+        }
       }
-    };
+    } else {
+      content.child(createP(`${value}`));
+    }
 
-    reader.readAsText(file);
+    section.child(header);
+    section.child(content);
+    return section;
+  };
+
+  for (let key in obj) {
+    container.child(createSection(key, obj[key]));
   }
 }
 
-function redrawCanvas() {
-  background(255);
-  let y = 30;
-  for (let i = 0; i < flatData.length; i++) {
-    let item = flatData[i];
-    text(item.key, 50, y);
-    text(String(item.value), 400, y);
-    y += 20;
-  }
-}
 
 function flattenJSON(obj, prefix = "") {
   for (let key in obj) {
