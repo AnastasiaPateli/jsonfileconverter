@@ -41,17 +41,25 @@ function redrawCanvas() {
     y += 20;
   }
 }
-
 function flattenJSON(obj, prefix = "") {
   for (let key in obj) {
     let value = obj[key];
     let newKey = prefix ? `${prefix}.${key}` : key;
 
-    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      flattenJSON(value, newKey);
+    if (typeof value === "object" && value !== null) {
+      if (Array.isArray(value)) {
+        // Handle arrays by indexing each item
+        value.forEach((item, index) => {
+          flattenJSON(item, `${newKey}[${index}]`);
+        });
+      } else {
+        flattenJSON(value, newKey); // Recursively flatten objects
+      }
     } else {
-      flatData.push({ key: newKey, value: value });
+      // Include null, undefined, and other primitive values
+      flatData.push({ key: newKey, value: value !== null ? value : "null" });
     }
   }
 }
+
 
