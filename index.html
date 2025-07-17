@@ -1,24 +1,30 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <meta charset="UTF-8" />
     <title>JSON Viewer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="examplefromp5.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
+        margin: 20px;
       }
       #upload {
-        margin: 20px;
+        margin-bottom: 20px;
+      }
+      button {
+        font-size: 16px;
       }
     </style>
   </head>
   <body>
-    <button id="downloadBtn" style="margin: 20px;">Download Agreement as PDF</button>
     <h2>Upload a JSON File</h2>
     <input type="file" id="upload" accept=".json" />
-    <div id="canvas-container"></div>
+    <button id="downloadBtn">Download Agreement as PDF</button>
+
+    <!-- This is where the JSON viewer and agreement will appear -->
+    <div id="json-viewer" style="margin-top: 30px;"></div>
   </body>
 </html>
