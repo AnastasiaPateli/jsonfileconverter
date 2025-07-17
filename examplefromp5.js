@@ -1,6 +1,4 @@
-let flatData = [];
 let agreementText = "";
-
 
 function setup() {
   noCanvas(); // We don't need canvas for this viewer
@@ -8,6 +6,22 @@ function setup() {
   // Set up file input listener
   let fileInput = select("#upload");
   fileInput.changed(handleFile);
+
+  // Set up download button listener
+  select("#downloadBtn").mousePressed(() => {
+    if (agreementText) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Split long text into lines for better formatting
+      const lines = doc.splitTextToSize(agreementText, 180);
+      doc.text(lines, 10, 20);
+
+      doc.save("agreement.pdf");
+    } else {
+      alert("Please upload a JSON file first.");
+    }
+  });
 }
 
 function handleFile() {
@@ -21,7 +35,19 @@ function handleFile() {
 
       try {
         let json = JSON.parse(content);
+
+        // Display collapsible JSON viewer
         displayJSON(json, select("#json-viewer"));
+
+        // Generate and display agreement
+        agreementText = generateAgreement(json);
+        select("#json-viewer").child(
+          createP(agreementText)
+            .style("white-space", "pre-wrap")
+            .style("margin-top", "30px")
+            .style("font-family", "Georgia, serif")
+            .style("font-size", "16px")
+        );
       } catch (err) {
         console.error("Invalid JSON:", err);
         alert("The uploaded file is not valid JSON.");
@@ -79,26 +105,6 @@ function displayJSON(obj, container) {
   }
 }
 
-
-function flattenJSON(obj, prefix = "") {
-  for (let key in obj) {
-    let value = obj[key];
-    let newKey = prefix ? `${prefix}.${key}` : key;
-
-    if (typeof value === "object" && value !== null) {
-      if (Array.isArray(value)) {
-        value.forEach((item, index) => {
-          flattenJSON(item, `${newKey}[${index}]`);
-        });
-      } else {
-        flattenJSON(value, newKey);
-      }
-    } else {
-      flatData.push({ key: newKey, value: value !== null ? value : "null" });
-    }
-  }
-}
-
 function generateAgreement(data) {
   const fullName = `${data.applicant_detail.first_name} ${data.applicant_detail.last_name}`;
   const fatherName = data.applicant_detail.father_name;
@@ -110,11 +116,11 @@ function generateAgreement(data) {
 ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
 
 Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
-εκμισθωτής ο/η _______ του ______ κάτοικος _______
-Α.Φ.Μ _______  Δ.Ο.Υ _______ 
-και αφεντέρου ο/η ${fullName}  του ${fatherName} επαγγέλματος αγρότης
-κάτοικος ${address} οδός _______ αρ. _______
-Α.Φ.Μ ${tin} Δ.Ο.Υ ${taxOffice}έδρα _______
+εκμισθωτής ο/η ${fullName} του ${fatherName} κάτοικος ${address}
+Α.Φ.Μ ${tin}  Δ.Ο.Υ ${taxOffice} 
+και αφεντέρου ο/η _______ του _______ επαγγέλματος αγρότης
+κάτοικος _______ οδός _______ αρ. _______
+Α.Φ.Μ _______ Δ.Ο.Υ _______ έδρα _______
 
 [...συνέχεια του συμφωνητικού...]
 
