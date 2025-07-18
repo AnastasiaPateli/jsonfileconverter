@@ -106,6 +106,7 @@ function displayJSON(obj, container) {
 }
 
 function generateAgreement(data) {
+  const length = data.field_list.[0].field_property_list.length;
   const fullName = `${data.applicant_detail.first_name} ${data.applicant_detail.last_name}`;
   const fatherName = data.applicant_detail.father_name;
   const address = `${data.applicant_detail.street || ""} ${data.applicant_detail.street_number || ""}, ${data.applicant_detail.post_code}`;
@@ -114,6 +115,8 @@ function generateAgreement(data) {
 
   return 
     `ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
+
+this is agreement number ${lenght}
 
 Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
 εκμισθωτής ο/η _______ του _______ κάτοικος 
