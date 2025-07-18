@@ -19,13 +19,19 @@
       }
     </style>
   </head>
-  <body>
-    <h2>Upload a JSON File</h2>
-    <input type="file" id="upload" accept=".json" />
-    <button id="downloadBtn">Download Agreement as PDF</button>
+ <body>
+  <h2>Upload a JSON File</h2>
+  <input type="file" id="upload" accept=".json" />
+  <button id="downloadBtn">Download Agreement as PDF</button>
 
-    <!-- This is where the JSON viewer and agreement will appear -->
-    <div id="json-viewer" style="margin-top: 30px;"></div>
-  </body>
+  <div id="main-container" style="display: flex; gap: 20px; margin-top: 30px;">
+    <!-- Left: JSON Viewer -->
+    <div id="json-viewer" style="flex: 1; overflow-y: auto; max-height: 90vh; border-right: 1px solid #ccc; padding-right: 20px;"></div>
+
+    <!-- Right: Agreement Preview -->
+    <div id="agreement-preview" style="flex: 1; overflow-y: auto; max-height: 90vh; padding-left: 20px;"></div>
+  </div>
+</body>
+
 </html>
 
