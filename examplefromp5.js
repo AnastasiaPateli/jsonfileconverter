@@ -36,18 +36,30 @@ function handleFile() {
       try {
         let json = JSON.parse(content);
 
+        // Clear previous content
+        select("#json-viewer").html("");
+
         // Display collapsible JSON viewer
         displayJSON(json, select("#json-viewer"));
 
-        // Generate and display agreement
-        agreementText = generateAgreement(json);
-        select("#json-viewer").child(
-          createP(agreementText)
-            .style("white-space", "pre-wrap")
-            .style("margin-top", "30px")
-            .style("font-family", "Georgia, serif")
-            .style("font-size", "16px")
-        );
+        // Generate multiple agreements
+        const agreementList = generateAgreement(json);
+
+        // Reset global agreementText for PDF
+        agreementText = "";
+
+        // Display each agreement and build combined text
+        agreementList.forEach((text, index) => {
+          agreementText += `Συμφωνητικό #${index + 1}\n\n${text}\n\n`;
+
+          select("#json-viewer").child(
+            createP(`Συμφωνητικό #${index + 1}\n\n${text}`)
+              .style("white-space", "pre-wrap")
+              .style("margin-top", "30px")
+              .style("font-family", "Georgia, serif")
+              .style("font-size", "16px")
+          );
+        });
       } catch (err) {
         console.error("Invalid JSON:", err);
         alert("The uploaded file is not valid JSON.");
@@ -57,6 +69,7 @@ function handleFile() {
     reader.readAsText(file);
   }
 }
+
 
 function displayJSON(obj, container) {
   container.html(""); // Clear previous content
@@ -106,26 +119,47 @@ function displayJSON(obj, container) {
 }
 
 function generateAgreement(data) {
+  const fieldList =
+    data.field_list &&
+    Array.isArray(data.field_list) &&
+    data.field_list[0] &&
+    Array.isArray(data.field_list[0].field_property_list)
+      ? data.field_list[0].field_property_list
+      : [];
+
   const fullName = `${data.applicant_detail.first_name} ${data.applicant_detail.last_name}`;
   const fatherName = data.applicant_detail.father_name;
   const address = `${data.applicant_detail.street || ""} ${data.applicant_detail.street_number || ""}, ${data.applicant_detail.post_code}`;
   const tin = data.tin;
   const taxOffice = data.applicant_detail.tax_office_code;
 
-  return `
+  let agreements = [];
+
+  for (let i = 0; i < fieldList.length; i++) {
+    const field = fieldList[i];
+
+    const agreement = `
 ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
 
-Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
-εκμισθωτής ο/η ${fullName} του ${fatherName} κάτοικος ${address}
-Α.Φ.Μ ${tin}  Δ.Ο.Υ ${taxOffice} 
-και αφεντέρου ο/η _______ του _______ επαγγέλματος αγρότης
-κάτοικος _______ οδός _______ αρ. _______
-Α.Φ.Μ _______ Δ.Ο.Υ _______ έδρα _______
+Αριθμός συμφωνητικού: ${i + 1}
 
-[...συνέχεια του συμφωνητικού...]
+Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
+εκμισθωτής ο/η _______ του _______ κάτοικος _______
+Α.Φ.Μ _______ Δ.Ο.Υ _______
+και αφεντέρου ο/η ${fullName} του ${fatherName} επαγγέλματος αγρότης
+κάτοικος ${address} οδός _______ αρ. _______
+Α.Φ.Μ ${tin} Δ.Ο.Υ ${taxOffice} έδρα _______
+
+Το παρόν συμφωνητικό αφορά το αγροτεμάχιο με στοιχεία: ${JSON.stringify(field)}
 
 Το παρόν συμφωνητικό διαβάστηκε και έγινε αποδεκτό από τους συμβαλλόμενους, υπογράφηκε από αυτούς και ο καθένας έλαβε αντίγραφο.
 `;
+
+    agreements.push(agreement);
+  }
+
+  return agreements;
 }
+
 
 
