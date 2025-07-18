@@ -1,53 +1,23 @@
 let agreementText = "";
 
-function setup() {
-  noCanvas(); // We're only creating DOM elements
-
-  // Create the table
-  let table = createElement("table").style("width", "80%");
-  table.style("border", "1px solid rgb(93, 161, 38)");
-  table.style("border-collapse", "collapse");
-
-  // Create header row
-  let headerRow = createElement("tr");
-  let th1 = createElement("th", "first header cell contents");
-  let th2 = createElement("th", "last header cell contents");
-
-  [th1, th2].forEach(th => {
-    th.style("border", "1px solid rgb(93, 161, 38)");
-    headerRow.child(th);
-  });
-
-  table.child(headerRow);
-
-  // Create first data row
-  let row1 = createElement("tr");
-  let td1 = createElement("td", "first row, first cell contents");
-  let td2 = createElement("td", "first row, last cell contents");
-
-  [td1, td2].forEach(td => {
-    td.style("border", "1px solid rgb(93, 161, 38)");
-    row1.child(td);
-  });
-
-  table.child(row1);
-
-  // Create second data row
-  let row2 = createElement("tr");
-  let td3 = createElement("td", "last row, first cell contents");
-  let td4 = createElement("td", "last row, last cell contents");
-
-  [td3, td4].forEach(td => {
-    td.style("border", "1px solid rgb(93, 161, 38)");
-    row2.child(td);
-  });
-
-  table.child(row2);
-
-  // Add table to the page
-  table.parent(document.body);
+function setup() { 
+  noCanvas(); 
+// We don't need canvas for this viewer 
+// Set up file input listener 
+let fileInput = select("#upload"); 
+  fileInput.changed(handleFile); 
+  // Set up download button listener 
+  select("#downloadBtn").mousePressed(() => { if (agreementText) { 
+    const { jsPDF } = window.jspdf; 
+    const doc = new jsPDF(); 
+    // Split long text into lines for better formatting 
+    const lines = doc.splitTextToSize(agreementText, 180); 
+    doc.text(lines, 10, 20); doc.save("agreement.pdf"); 
+  } else {
+    alert("Please upload a JSON file first."); 
+  } 
+  }); 
 }
-
 
 function handleFile() {
   let file = this.elt.files[0];
