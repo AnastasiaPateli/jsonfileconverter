@@ -38,8 +38,9 @@ function handleFile() {
 
         // Clear previous content
         select("#json-viewer").html("");
+        select("#agreement-preview").html("");
 
-        // Display collapsible JSON viewer
+        // Display collapsible JSON viewer in left panel
         displayJSON(json, select("#json-viewer"));
 
         // Generate multiple agreements
@@ -48,27 +49,28 @@ function handleFile() {
         // Reset global agreementText for PDF
         agreementText = "";
 
-        // Display each agreement and build combined text
+        // Display each agreement in right panel and build combined text
         agreementList.forEach((text, index) => {
           agreementText += `Συμφωνητικό #${index + 1}\n\n${text}\n\n`;
 
-          select("#json-viewer").child(
+          select("#agreement-preview").child(
             createP(`Συμφωνητικό #${index + 1}\n\n${text}`)
               .style("white-space", "pre-wrap")
-              .style("margin-top", "30px")
+              .style("margin-bottom", "30px")
               .style("font-family", "Georgia, serif")
               .style("font-size", "16px")
           );
         });
       } catch (err) {
         console.error("Invalid JSON:", err);
-        alert("The uploaded file is not valid JSON.");
+        alert("Το αρχείο JSON δεν είναι έγκυρο.");
       }
     };
 
     reader.readAsText(file);
   }
 }
+
 
 
 
