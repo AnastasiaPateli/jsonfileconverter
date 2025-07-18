@@ -125,6 +125,12 @@ function generateAgreement(data) {
       ? data.field_list[0].field_property_list
       : [];
 
+  const n = {data.field_list.length};
+  const t = n*{
+    for (i=0; i <= n; i++) {
+    {data.field_list.[i].field_property_list.length}
+  };
+  
   const fullName = `${data.applicant_detail.first_name} ${data.applicant_detail.last_name}`;
   const fatherName = data.applicant_detail.father_name;
   const address = `${data.applicant_detail.street || ""} ${data.applicant_detail.street_number || ""}, ${data.applicant_detail.post_code}`;
