@@ -71,6 +71,7 @@ function handleFile() {
 }
 
 
+
 function displayJSON(obj, container) {
   container.html(""); // Clear previous content
 
