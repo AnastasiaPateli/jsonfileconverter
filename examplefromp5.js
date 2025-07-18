@@ -106,20 +106,26 @@ function displayJSON(obj, container) {
 }
 
 function generateAgreement(data) {
-  const length = data.field_list.[0].field_property_list.length;
+  const length =
+    data.field_list &&
+    data.field_list[0] &&
+    Array.isArray(data.field_list[0].field_property_list)
+      ? data.field_list[0].field_property_list.length
+      : 0;
+
   const fullName = `${data.applicant_detail.first_name} ${data.applicant_detail.last_name}`;
   const fatherName = data.applicant_detail.father_name;
   const address = `${data.applicant_detail.street || ""} ${data.applicant_detail.street_number || ""}, ${data.applicant_detail.post_code}`;
   const tin = data.tin;
   const taxOffice = data.applicant_detail.tax_office_code;
 
-  return 
-    `ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
+  return `
+ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
 
-this is agreement number ${lenght}
+Αριθμός συμφωνητικού: ${length}
 
 Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
-εκμισθωτής ο/η _______ του _______ κάτοικος 
+εκμισθωτής ο/η _______ του _______ κάτοικος _______
 Α.Φ.Μ _______ Δ.Ο.Υ _______
 και αφεντέρου ο/η ${fullName} του ${fatherName} επαγγέλματος αγρότης
 κάτοικος ${address} οδός _______ αρ. _______
@@ -127,6 +133,9 @@ this is agreement number ${lenght}
 
 [...συνέχεια του συμφωνητικού...]
 
-Το παρόν συμφωνητικό διαβάστηκε και έγινε αποδεκτό από τους συμβαλλόμενους, υπογράφηκε από αυτούς και ο καθένας έλαβε αντίγραφο.`;
+Το παρόν συμφωνητικό διαβάστηκε και έγινε αποδεκτό από τους συμβαλλόμενους, υπογράφηκε από αυτούς και ο καθένας έλαβε αντίγραφο.
+`;
 }
+
+
 
