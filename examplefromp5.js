@@ -1,7 +1,7 @@
 let agreementText = "";
 
 function setup() {
-  noCanvas(); // We don't need canvas for this viewer
+  createCanvas(800,windowHeight);
 
   // Set up file input listener
   let fileInput = select("#upload");
@@ -116,11 +116,11 @@ function generateAgreement(data) {
     `ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
 
 Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
-εκμισθωτής ο/η ${fullName} του ${fatherName} κάτοικος ${address}
-Α.Φ.Μ ${tin}  Δ.Ο.Υ ${taxOffice} 
-και αφεντέρου ο/η _______ του _______ επαγγέλματος αγρότης
-κάτοικος _______ οδός _______ αρ. _______
-Α.Φ.Μ _______ Δ.Ο.Υ _______ έδρα _______
+εκμισθωτής ο/η _______ του _______ κάτοικος 
+Α.Φ.Μ _______ Δ.Ο.Υ _______
+και αφεντέρου ο/η ${fullName} του ${fatherName} επαγγέλματος αγρότης
+κάτοικος ${address} οδός _______ αρ. _______
+Α.Φ.Μ ${tin} Δ.Ο.Υ ${taxOffice} έδρα _______
 
 [...συνέχεια του συμφωνητικού...]
 
