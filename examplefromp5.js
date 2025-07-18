@@ -125,7 +125,6 @@ function generateAgreement(data) {
       ? data.field_list[0].field_property_list
       : [];
 
- 
   const fullName = `${data.applicant_detail.first_name} ${data.applicant_detail.last_name}`;
   const fatherName = data.applicant_detail.father_name;
   const address = `${data.applicant_detail.street || ""} ${data.applicant_detail.street_number || ""}, ${data.applicant_detail.post_code}`;
@@ -143,22 +142,13 @@ function generateAgreement(data) {
 Αριθμός συμφωνητικού: ${i + 1}
 
 Σήμερα την 1η Νοεμβρίου 2024 στο Δημοτικό οι υπογράφοντες το συμφωνητικό αυτό
-εκμισθωτής ο/η ${fullName}_______ του _______ κάτοικος _______
+εκμισθωτής ο/η _______ του _______ κάτοικος _______
 Α.Φ.Μ _______ Δ.Ο.Υ _______
 και αφεντέρου ο/η ${fullName} του ${fatherName} επαγγέλματος αγρότης
 κάτοικος ${address} οδός _______ αρ. _______
 Α.Φ.Μ ${tin} Δ.Ο.Υ ${taxOffice} έδρα _______
 
-Α/Α	ΚΟΙΝΟΤΗΤΑ	ΤΟΠΟΘΕΣΙΑ	Α.Τ.Α.Κ. 	ΑΡ.ΚΤΗΜ.ΤΕΜ.	ΧΑΡΤΟΓΡΑΦΙΚΟ	ΕΚΤΑΣΗ (Ha)
-1.						
-2.							
-3.							
-4.							
-5.							
-6.							
-7.							
-8.							
-
+Το παρόν συμφωνητικό αφορά το αγροτεμάχιο με στοιχεία: ${JSON.stringify(field)}
 
 Το παρόν συμφωνητικό διαβάστηκε και έγινε αποδεκτό από τους συμβαλλόμενους, υπογράφηκε από αυτούς και ο καθένας έλαβε αντίγραφο.
 `;
