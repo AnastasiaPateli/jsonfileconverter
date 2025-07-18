@@ -1,7 +1,7 @@
 let agreementText = "";
 
 function setup() {
-  createCanvas(800,windowHeight);
+  noCanvas();
 
   // Set up file input listener
   let fileInput = select("#upload");
