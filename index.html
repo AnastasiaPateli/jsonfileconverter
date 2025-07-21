@@ -21,9 +21,8 @@
   <div id="output"></div>
 
   <script>
-    // Utility: Agreement Template (styled like Word)
-    function agreementTemplate(owner, fields, idx) {
-      // Create the agreement table rows
+    // Utility: Agreement Template (without the download button inside)
+    function agreementHtml(owner, fields) {
       let rowsHtml = fields.map((f, i) => `
         <tr>
           <td>${i+1}</td>
@@ -35,57 +34,49 @@
           <td>${f.area || ''}</td>
         </tr>`).join('');
 
-      // Main document content similar to your .docx sample
       return `
-      <div class="agreement" id="agreement-${owner.tin}">
-        <div class="owner-title">
-          ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ<br/>
-          (Εκμισθωτής: ${owner.full_name} - ΑΦΜ: ${owner.tin})
+        <div class="agreement">
+          <div class="owner-title">
+            ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ<br/>
+            (Εκμισθωτής: ${owner.full_name} - ΑΦΜ: ${owner.tin})
+          </div>
+          <div>
+            Σήμερα την [ΗΜΕΡΟΜΗΝΙΑ] στο [ΤΟΠΟΣ] οι υπογράφοντες:
+            <br><strong>Εκμισθωτής:</strong> ${owner.full_name} (ΑΦΜ: ${owner.tin})
+            <br><strong>Ενοικιαστής:</strong> [Στοιχεία Ενοικιαστή να συμπληρωθούν]
+          </div>
+          <h3>ΠΙΝΑΚΑΣ ΑΓΡΩΝ</h3>
+          <table class="agreement-table">
+            <tr>
+              <th>Α/Α</th>
+              <th>ΚΟΙΝΟΤΗΤΑ</th>
+              <th>ΤΟΠΟΘΕΣΙΑ</th>
+              <th>Α.Τ.Α.Κ.</th>
+              <th>ΑΡ.ΚΤΗΜ.ΤΕΜ.</th>
+              <th>ΧΑΡΤΟΓΡΑΦΙΚΟ</th>
+              <th>ΕΚΤΑΣΗ (Ha)</th>
+            </tr>
+            ${rowsHtml}
+          </table>
+          <div style="margin:1em 0;font-size:1.05em;line-height:1.6">
+          Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:<br>
+          <strong>ΔΙΑΡΚΕΙΑ:</strong> [Πχ: Από ${fields[0].rental_start} έως ${fields[0].rental_end}]<br>
+          <strong>ΜΙΣΘΩΜΑ:</strong> Το ετήσιο μίσθωμα ορίζεται σε [ΣΥΜΠΛΗΡΩΣΤΕ] Ευρώ/ΣΤΡ<br>
+          <br>
+          <strong>ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ:</strong> Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθησαν σ' αυτό.
+          <br>
+          Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.
+          <br>
+          <span><strong>ΗΜΕΡΟΜΗΝΙΑ:</strong> [Συμπληρώστε]</span>
+          </div>
         </div>
-        <div>
-          Σήμερα την [ΗΜΕΡΟΜΗΝΙΑ] στο [ΤΟΠΟΣ] οι υπογράφοντες:
-          <br><strong>Εκμισθωτής:</strong> ${owner.full_name} (ΑΦΜ: ${owner.tin})
-          <br><strong>Ενοικιαστής:</strong> [Στοιχεία Ενοικιαστή να συμπληρωθούν]
-        </div>
-        <h3>ΠΙΝΑΚΑΣ ΑΓΡΩΝ</h3>
-        <table class="agreement-table">
-          <tr>
-            <th>Α/Α</th>
-            <th>ΚΟΙΝΟΤΗΤΑ</th>
-            <th>ΤΟΠΟΘΕΣΙΑ</th>
-            <th>Α.Τ.Α.Κ.</th>
-            <th>ΑΡ.ΚΤΗΜ.ΤΕΜ.</th>
-            <th>ΧΑΡΤΟΓΡΑΦΙΚΟ</th>
-            <th>ΕΚΤΑΣΗ (Ha)</th>
-          </tr>
-          ${rowsHtml}
-        </table>
-        <div style="margin:1em 0;font-size:1.05em;line-height:1.6">
-        Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:<br>
-        <strong>ΔΙΑΡΚΕΙΑ:</strong> [Πχ: Από ${fields[0].rental_start} έως ${fields[0].rental_end}]<br>
-        <strong>ΜΙΣΘΩΜΑ:</strong> Το ετήσιο μίσθωμα ορίζεται σε [ΣΥΜΠΛΗΡΩΣΤΕ] Ευρώ/ΣΤΡ<br>
-        <br>
-        <strong>ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ:</strong> Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθησαν σ' αυτό.
-        <br>
-        Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.
-        <br>
-        <span><strong>ΗΜΕΡΟΜΗΝΙΑ:</strong> [Συμπληρώστε]</span>
-        </div>
-        <button class="download-btn" onclick="downloadAgreement(${idx}, '${owner.full_name}', '${owner.tin}')">
-          Λήψη ως DOCX
-        </button>
-      </div>
       `;
     }
 
     // Parse and organize agreements by TIN
     function processJson(data) {
-      // Stores { tin: { owner: {tin, full_name, ...}, fields: [fieldData, ...] } }
       const agreementsByTin = {};
-
-      // Process each field in the field_list
       (data.field_list || []).forEach(field => {
-        // Each field can have multiple property/owners
         (field.field_property_list || []).forEach(ownerProp => {
           if (!agreementsByTin[ownerProp.tin]) {
             agreementsByTin[ownerProp.tin] = {
@@ -108,40 +99,49 @@
           });
         });
       });
-
       return agreementsByTin;
     }
 
-    // Display agreements
+    // Display agreements and add button
     function displayAgreements(agreementsByTin) {
       const container = document.getElementById('output');
       container.innerHTML = '';
+      window._agreements = [];
       Object.values(agreementsByTin).forEach(({owner, fields}, idx) => {
-        container.innerHTML += agreementTemplate(owner, fields, idx);
+        window._agreements.push({owner, fields}); // Save raw data
+        container.innerHTML += `
+          <div id="agwrap-${idx}">
+            ${agreementHtml(owner, fields)}
+            <button class="download-btn" onclick="downloadAgreement(${idx})">Λήψη ως DOCX</button>
+          </div>
+        `;
       });
-      // Store a global reference for download
-      window._agreementsHtml = Object.values(agreementsByTin).map(({owner, fields}, idx) =>
-        agreementTemplate(owner, fields, idx)
-      );
     }
 
-    // Download as DOCX using html-docx-js
-    function downloadAgreement(idx, owner_full_name, tin) {
-      // Extract agreement HTML cleanly
-      const html = '<!DOCTYPE html>' +
-        '<html><head><meta charset="UTF-8"><title>Συμφωνητικό Ενοικίασης</title>' +
-        '<style>' + document.querySelector('style').innerHTML + '</style></head><body style="font-family: Arial;">'
-        + window._agreementsHtml[idx] +
+    // Download function: creates fresh HTML and passes to htmlDocx.js
+    function downloadAgreement(idx) {
+      // Get fresh agreement HTML (without button)
+      const {owner, fields} = window._agreements[idx];
+      const html =
+        '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+        '<style>' +
+        document.querySelector('style').innerHTML +
+        '</style></head><body>' +
+        agreementHtml(owner, fields) +
         '</body></html>';
 
-      const converted = window.htmlDocx.asBlob(html);
+      const blob = window.htmlDocx.asBlob(html);
+      const filename = `Συμφωνητικό-${(owner.full_name||'').replace(/[^a-zA-Z0-9\u0370-\u03FF]/g,"")}-${owner.tin}.docx`;
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(converted);
-      a.download = `Συμφωνητικό-${owner_full_name.replace(/[^a-zA-Z0-9\u0370-\u03FF]/g,"")}-${tin}.docx`;
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       setTimeout(() => document.body.removeChild(a), 100);
     }
+
+    // Attach downloadAgreement to window
+    window.downloadAgreement = downloadAgreement;
 
     // File Input Handler
     document.getElementById('fileInput').addEventListener('change', function(event){
@@ -161,6 +161,7 @@
       };
       reader.readAsText(file);
     });
+
   </script>
 </body>
 </html>
