@@ -195,38 +195,70 @@
             </div>
 
             <div class="json-format">
-                <h3>📋 Expected JSON Format:</h3>
-                <pre id="jsonExample">{
+                <h3>📋 Supported JSON Formats:</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 style="color: #27ae60;">✅ Original Format (Auto-converted):</h4>
+                        <pre style="font-size: 0.8em;">{
+  "tenantName": "GreenFarm Enterprises",
+  "tenantEmail": "contact@greenfarm.com", 
+  "tenantTIN": "TENANT001",
+  "tenantAddress": "123 Farm Street",
+  "requestedFields": [0, 1, 2],
+  "fields": [
+    {
+      "tin": "TIN001",
+      "name": "John Smith",
+      "contact": "john@email.com",
+      "address": "456 Owner Ave",
+      "ownershipShare": 0.6,
+      "rentAmount": 1000
+    },
+    {
+      "tin": "TIN002", 
+      "name": "Mary Johnson",
+      "contact": "mary@email.com",
+      "address": "789 Property St",
+      "ownershipShare": 1.0,
+      "rentAmount": 1200
+    }
+  ]
+}</pre>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 style="color: #3498db;">✅ Standard Format:</h4>
+                        <pre style="font-size: 0.8em;">{
   "tenant": {
     "name": "GreenFarm Enterprises",
     "contact": "contact@greenfarm.com",
-    "tin": "TENANT001",
-    "address": "123 Farm Street, Agricultural City"
+    "tin": "TENANT001", 
+    "address": "123 Farm Street"
   },
   "requestedFields": [0, 1, 2],
   "fields": {
-    "0": [
-      {
-        "tin": "TIN001",
-        "name": "John Smith",
-        "contact": "john@email.com",
-        "address": "456 Owner Ave, City",
-        "ownershipShare": 0.6,
-        "rentAmount": 1000
-      }
-    ],
-    "1": [
-      {
-        "tin": "TIN002",
-        "name": "Mary Johnson", 
-        "contact": "mary@email.com",
-        "address": "789 Property St, City",
-        "ownershipShare": 1.0,
-        "rentAmount": 1200
-      }
-    ]
+    "0": [{
+      "tin": "TIN001",
+      "name": "John Smith",
+      "contact": "john@email.com",
+      "address": "456 Owner Ave",
+      "ownershipShare": 0.6,
+      "rentAmount": 1000
+    }],
+    "1": [{
+      "tin": "TIN002",
+      "name": "Mary Johnson",
+      "contact": "mary@email.com", 
+      "address": "789 Property St",
+      "ownershipShare": 1.0,
+      "rentAmount": 1200
+    }]
   }
 }</pre>
+                    </div>
+                </div>
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <p><strong>🔄 Auto-Detection:</strong> The system automatically detects your JSON format and converts it if needed. You can upload either format!</p>
+                </div>
             </div>
 
             <div id="errorDiv"></div>
@@ -246,9 +278,54 @@
                 this.agreements = [];
             }
 
+            convertJsonFormat(originalData) {
+                try {
+                    // Convert original JSON format to expected format
+                    const tenantInfo = {
+                        name: originalData.tenantName || "GreenFarm Enterprises",
+                        contact: originalData.tenantEmail || "contact@greenfarm.com", 
+                        tin: originalData.tenantTIN || "TENANT001",
+                        address: originalData.tenantAddress || "123 Farm Street, Agricultural City"
+                    };
+
+                    const requestedFields = originalData.requestedFields || [0, 1, 2];
+
+                    const fieldData = {};
+                    const rawFields = originalData.fields || [];
+                    
+                    rawFields.forEach((field, idx) => {
+                        fieldData[idx.toString()] = [{
+                            tin: field.tin || "",
+                            name: field.name || "",
+                            contact: field.contact || "",
+                            address: field.address || "",
+                            ownershipShare: field.ownershipShare || 1.0,
+                            rentAmount: field.rentAmount || 0
+                        }];
+                    });
+
+                    return {
+                        tenant: tenantInfo,
+                        requestedFields: requestedFields,
+                        fields: fieldData
+                    };
+                } catch (error) {
+                    throw new Error(`Error converting JSON format: ${error.message}`);
+                }
+            }
+
             processJsonData(jsonData) {
                 try {
-                    const { tenant, requestedFields, fields } = jsonData;
+                    // Try to detect if we need to convert the format first
+                    let processedData = jsonData;
+                    
+                    // Check if this is the original format (has tenantName instead of tenant object)
+                    if (jsonData.tenantName || (jsonData.fields && Array.isArray(jsonData.fields))) {
+                        console.log('Detected original JSON format, converting...');
+                        processedData = this.convertJsonFormat(jsonData);
+                    }
+
+                    const { tenant, requestedFields, fields } = processedData;
                     
                     if (!tenant || !requestedFields || !fields) {
                         throw new Error('Missing required fields: tenant, requestedFields, or fields');
@@ -437,6 +514,12 @@
                 reader.onload = function(e) {
                     try {
                         const jsonData = JSON.parse(e.target.result);
+                        
+                        // Show conversion info if original format detected
+                        if (jsonData.tenantName || (jsonData.fields && Array.isArray(jsonData.fields))) {
+                            successDiv.innerHTML = `<div class="success">🔄 Detected original format - automatically converting to standard format...</div>`;
+                        }
+                        
                         const agreements = rentalManager.processJsonData(jsonData);
                         
                         successDiv.innerHTML = `<div class="success">✅ Successfully processed ${agreements.length} rental agreements!</div>`;
