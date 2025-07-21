@@ -1,168 +1,129 @@
 <!DOCTYPE html>
-<html lang="el">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Συμφωνητικά Ενοικίασης Αγρού</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 1em; }
-    .agreement { border: 1px solid #222; margin: 2em 0; padding: 1.5em; background: #f8f8f8; }
-    .owner-title { font-weight: bold; font-size: 1.2em; margin-bottom: 0.6em; }
-    .agreement-table { border-collapse: collapse; width: 100%; margin: 1em 0;}
-    .agreement-table th, .agreement-table td { border: 1px solid #222; padding: 0.4em 0.6em; text-align: center;}
-    .agreement-table th { background: #ececec; }
-    .download-btn { margin: 1em 0; padding: 0.3em 1em; font-size: 1em;}
-    pre { background: #eee; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.4.1/dist/html-docx.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenancy Agreement Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .agreement { margin-bottom: 2rem; padding: 1rem; border: 1px solid #ccc; }
+    </style>
 </head>
-<body>
-  <h1>Δημιουργία και Λήψη Ιδιωτικού Συμφωνητικού Αγρομίσθωσης</h1>
-  <input type="file" id="fileInput" accept=".json" />
-  <div id="output"></div>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4">Tenancy Agreement Generator</h1>
+        <input type="file" id="jsonInput" accept=".json" class="mb-4">
+        <div id="agreements" class="mt-4"></div>
+    </div>
 
-  <script>
-    // Utility: Agreement Template (without the download button inside)
-    function agreementHtml(owner, fields) {
-      let rowsHtml = fields.map((f, i) => `
-        <tr>
-          <td>${i+1}</td>
-          <td>${f.community || ''}</td>
-          <td>${f.location || ''}</td>
-          <td>${f.atak || ''}</td>
-          <td>${f.property_title_code || ''}</td>
-          <td>${f.cartographic || ''}</td>
-          <td>${f.area || ''}</td>
-        </tr>`).join('');
+    <script>
+        // Template for the tenancy agreement
+        const agreementTemplate = `
+ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ
 
-      return `
-        <div class="agreement">
-          <div class="owner-title">
-            ΙΔΙΩΤΙΚΟ ΣΥΜΦΩΝΗΤΙΚΟ ΑΓΡΟΜΙΣΘΩΣΗΣ<br/>
-            (Εκμισθωτής: ${owner.full_name} - ΑΦΜ: ${owner.tin})
-          </div>
-          <div>
-            Σήμερα την [ΗΜΕΡΟΜΗΝΙΑ] στο [ΤΟΠΟΣ] οι υπογράφοντες:
-            <br><strong>Εκμισθωτής:</strong> ${owner.full_name} (ΑΦΜ: ${owner.tin})
-            <br><strong>Ενοικιαστής:</strong> [Στοιχεία Ενοικιαστή να συμπληρωθούν]
-          </div>
-          <h3>ΠΙΝΑΚΑΣ ΑΓΡΩΝ</h3>
-          <table class="agreement-table">
-            <tr>
-              <th>Α/Α</th>
-              <th>ΚΟΙΝΟΤΗΤΑ</th>
-              <th>ΤΟΠΟΘΕΣΙΑ</th>
-              <th>Α.Τ.Α.Κ.</th>
-              <th>ΑΡ.ΚΤΗΜ.ΤΕΜ.</th>
-              <th>ΧΑΡΤΟΓΡΑΦΙΚΟ</th>
-              <th>ΕΚΤΑΣΗ (Ha)</th>
-            </tr>
-            ${rowsHtml}
-          </table>
-          <div style="margin:1em 0;font-size:1.05em;line-height:1.6">
-          Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:<br>
-          <strong>ΔΙΑΡΚΕΙΑ:</strong> [Πχ: Από ${fields[0].rental_start} έως ${fields[0].rental_end}]<br>
-          <strong>ΜΙΣΘΩΜΑ:</strong> Το ετήσιο μίσθωμα ορίζεται σε [ΣΥΜΠΛΗΡΩΣΤΕ] Ευρώ/ΣΤΡ<br>
-          <br>
-          <strong>ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ:</strong> Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθησαν σ' αυτό.
-          <br>
-          Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.
-          <br>
-          <span><strong>ΗΜΕΡΟΜΗΝΙΑ:</strong> [Συμπληρώστε]</span>
-          </div>
-        </div>
-      `;
-    }
+Σήμερα την 1η Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό 
+αφενός ο/η {{owner_name}} του {{owner_father_name}}, κάτοικος {{owner_address}} οδός {{owner_street}} αρ {{owner_street_number}}
+Α.Φ.Μ {{owner_tin}} Δ.Ο.Υ {{owner_doy}}
+και αφετέρου η ΕΛΕΥΘΕΡΙΑ ΤΖΟΤΣΙΚΑ του ΓΕΩΡΓΙΟΣ επαγγέλματος αγρότης
+κάτοικος Δημητρίτσι οδός - αρ. -
+Α.Φ.Μ 136332321 Δ.Ο.Υ Α Σερρών
+συμφώνησαν από κοινού και αποδέχτηκαν τα εξής:
+1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος ("εκμισθωτής") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:
+    Α/Α  ΚΟΙΝΟΤΗΤΑ  ΤΟΠΟΘΕΣΙΑ  Α.Τ.Α.Κ.  ΑΡ.ΚΤΗΜ.ΤΕΜ.  ΧΑΡΤΟΓΡΑΦΙΚΟ  ΕΚΤΑΣΗ (Ha)
+{{fields_table}}
+Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:
+2. ΔΙΑΡΚΕIΑ. Η διάρκεια της παρούσας μίσθωσης ορίζεται:
+Αρχίζει την 1η ΝΟΕΜΒΡΙΟΥ 2024 και λήγει την 31η ΟΚΤΩΒΡΙΟΥ 2032.
+3. ΜΙΣΘΩΜΑ. Το ετήσιο μίσθωμα ορίζεται σε ευρώ 100 /ΣΤΡ
+4. ΧΡΗΣΗ. Ο μίσθιος αγρός θα χρησιμοποιηθεί για αποκλειστικά για αγροτική καλλιέργεια. Απαγορεύεται απόλυτα οποιαδήποτε μετατροπή της χρήσης ή του τρόπου εκμετάλλευσης του μισθίου, η ολική ή μερική υπομίσθωσή του, ή η με οποιοδήποτε τρόπο, με ή χωρίς αντάλλαγμα παραχώρηση της χρήσης του μισθίου σε τρίτους καθώς και η πρόσληψη συνεταίρου, χωρίς την προηγούμενη έγγραφη συναίνεση του εκμισθωτή.
+5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθησαν σ' αυτό.
+Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.
+ΟΙ ΣΥΜΒΑΛΛΟΜΕΝΟΙ
+Ο ΕΚΜΙΣΘΩΤΗΣ             ΘΕΩΡΗΘΗΚΕ             Ο ΜΙΣΘΩΤΗΣ 
+Για το γνήσιο των υπογραφών
+ΗΜΕΡΟΜΗΝΙΑ
+`;
 
-    // Parse and organize agreements by TIN
-    function processJson(data) {
-      const agreementsByTin = {};
-      (data.field_list || []).forEach(field => {
-        (field.field_property_list || []).forEach(ownerProp => {
-          if (!agreementsByTin[ownerProp.tin]) {
-            agreementsByTin[ownerProp.tin] = {
-              owner: {
-                tin: ownerProp.tin,
-                full_name: ownerProp.full_name
-              },
-              fields: []
+        // Function to process JSON and generate agreements
+        document.getElementById('jsonInput').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const readerHANDEL reader = new FileReader();
+            reader.onload = async (e) => {
+                const jsonData = JSON.parse(e.target.result);
+                const agreementsDiv = document.getElementById('agreements');
+                agreementsDiv.innerHTML = '';
+
+                // Group fields by owner TIN
+                const ownerFields = {};
+                jsonData.field_list.forEach(field => {
+                    field.field_property_list.forEach(property => {
+                        const tin = property.tin;
+                        if (!ownerFields[tin]) {
+                            ownerFields[tin] = {
+                                name: property.full_name,
+                                fields: [],
+                                tin: tin
+                            };
+                        }
+                        ownerFields[tin].fields.push({
+                            community: field.field_info.location.split('-')[0],
+                            location: field.field_info.location,
+                            atak: property.atak,
+                            property_number: property.legal_possession_document_number,
+                            cartographic: field.field_geospatial_data.cartographic_background,
+                            area: field.field_cultivation_list[0].total_area
+                        });
+                    });
+                });
+
+                // Generate agreements
+                Object.values(ownerFields).forEach((owner, index) => {
+                    // Extract owner details from JSON
+                    const ownerDetails = jsonData.applicant_detail;
+                    const fieldsTable = owner.fields.map((f, i) => 
+                        `    ${i + 1}. ${f.community} ${f.location} ${f.atak || '-'} ${f.property_number || '-'} ${f.cartographic} ${f.area}`
+                    ).join('\n');
+
+                    const agreementText = agreementTemplate
+                        .replace('{{owner_name}}', owner.name)
+                        .replace('{{owner_father_name}}', '-')
+                        .replace('{{owner_address}}', ownerDetails.post_code || '62200')
+                        .replace('{{owner_street}}', ownerDetails.street || '-')
+                        .replace('{{owner_street_number}}', ownerDetails.street_number || '-')
+                        .replace('{{owner_tin}}', owner.tin)
+                        .replace('{{owner_doy}}', ownerDetails.tax_office_code || 'Α Σερρών')
+                        .replace('{{fields_table}}', fieldsTable);
+
+                    // Create agreement element
+                    const agreementElement = document.createElement('div');
+                    agreementElement.className = 'agreement';
+                    agreementElement.innerHTML = `
+                        <h2 class="text-xl font-bold mb-2">Agreement for ${owner.name}</h2>
+                        <pre class="whitespace-pre-wrap">${agreementText}</pre>
+                        <button class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="downloadAgreement('${owner.tin}', \`${agreementText}\`)">Download Agreement</button>
+                    `;
+                    agreementsDiv.appendChild(agreementElement);
+                });
             };
-          }
-          agreementsByTin[ownerProp.tin].fields.push({
-            community: field.field_info && field.field_info.community || '',
-            location: field.field_info && field.field_info.location || '',
-            atak: ownerProp.atak || '',
-            property_title_code: ownerProp.property_title_code || '',
-            cartographic: field.field_geospatial_data && field.field_geospatial_data.map_ref || '',
-            area: field.field_geospatial_data && field.field_geospatial_data.area || '',
-            rental_start: ownerProp.rental_start_date ? ownerProp.rental_start_date.split(' ')[0] : '-',
-            rental_end: ownerProp.rental_end_date ? ownerProp.rental_end_date.split(' ')[0] : '-'
-          });
+            reader.readAsText(file);
         });
-      });
-      return agreementsByTin;
-    }
 
-    // Display agreements and add button
-    function displayAgreements(agreementsByTin) {
-      const container = document.getElementById('output');
-      container.innerHTML = '';
-      window._agreements = [];
-      Object.values(agreementsByTin).forEach(({owner, fields}, idx) => {
-        window._agreements.push({owner, fields}); // Save raw data
-        container.innerHTML += `
-          <div id="agwrap-${idx}">
-            ${agreementHtml(owner, fields)}
-            <button class="download-btn" onclick="downloadAgreement(${idx})">Λήψη ως DOCX</button>
-          </div>
-        `;
-      });
-    }
-
-    // Download function: creates fresh HTML and passes to htmlDocx.js
-    function downloadAgreement(idx) {
-      // Get fresh agreement HTML (without button)
-      const {owner, fields} = window._agreements[idx];
-      const html =
-        '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-        '<style>' +
-        document.querySelector('style').innerHTML +
-        '</style></head><body>' +
-        agreementHtml(owner, fields) +
-        '</body></html>';
-
-      const blob = window.htmlDocx.asBlob(html);
-      const filename = `Συμφωνητικό-${(owner.full_name||'').replace(/[^a-zA-Z0-9\u0370-\u03FF]/g,"")}-${owner.tin}.docx`;
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => document.body.removeChild(a), 100);
-    }
-
-    // Attach downloadAgreement to window
-    window.downloadAgreement = downloadAgreement;
-
-    // File Input Handler
-    document.getElementById('fileInput').addEventListener('change', function(event){
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        let jsonData = null;
-        try {
-          jsonData = JSON.parse(e.target.result);
-        } catch (err) {
-          alert('Το αρχείο δεν είναι σωστό JSON!');
-          return;
+        // Function to download agreement as a text file
+        function downloadAgreement(tin, text) {
+            const blob = new Blob([text], { type: 'colnapplication/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tenancy_agreement_${tin}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
-        const agreementsByTin = processJson(jsonData);
-        displayAgreements(agreementsByTin);
-      };
-      reader.readAsText(file);
-    });
-
-  </script>
+    </script>
 </body>
 </html>
 
