@@ -1,581 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rental Agreement Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.4/pizzip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.37.11/docxtemplater.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(45deg, #2c3e50, #3498db);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .upload-section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 2px dashed #dee2e6;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .upload-section:hover {
-            border-color: #3498db;
-            background: #e3f2fd;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .file-label {
-            display: inline-block;
-            padding: 15px 30px;
-            background: linear-gradient(45deg, #3498db, #2980b9);
-            color: white;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-        }
-
-        .file-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
-        }
-
-        .json-format {
-            background: #2c3e50;
-            color: #ecf0f1;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            overflow-x: auto;
-        }
-
-        .results-section {
-            margin-top: 30px;
-            display: none;
-        }
-
-        .agreement-card {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .agreement-header {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .field-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .field-item {
-            background: #f8f9fa;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
-        }
-
-        .download-btn {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
-        }
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #c62828;
-            margin: 15px 0;
-        }
-
-        .success {
-            background: #e8f5e8;
-            color: #2e7d32;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #2e7d32;
-            margin: 15px 0;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Agreements Generator by Owner</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 1em; }
+    .agreement { border: 1px solid #222; margin: 1em 0; padding: 1em; background: #f8f8f8; }
+    .owner-title { font-weight: bold; font-size: 1.2em; margin-bottom: 0.6em; }
+    pre { background: #eee; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏡 Rental Agreement Generator</h1>
-            <p>Upload your JSON file to generate professional rental agreements</p>
+  <h1>Generate Agreements by Owner (TIN)</h1>
+  <input type="file" id="fileInput" accept=".json"/>
+  <div id="output"></div>
+
+  <script>
+    // Utility: Agreement Template (customize as appropriate)
+    function agreementTemplate(owner, fields) {
+      return `
+        <div class="agreement">
+          <div class="owner-title">ΣΥΜΦΩΝΗΤΙΚΟ ΕΝΟΙΚΙΑΣΗΣ ΑΓΡΟΥ - ${owner.full_name} (ΑΦΜ: ${owner.tin})</div>
+          <p><strong>Ιδιοκτήτης:</strong> ${owner.full_name} (ΑΦΜ: ${owner.tin})</p>
+          <p><strong>Ενοικιαστής:</strong> [Στοιχεία Ενοικιαστή συμπληρώστε εδώ]</p>
+          <p>Περίληψη συμφωνίας για τα ακόλουθα αγροτεμάχια:</p>
+          <ul>
+            ${fields.map(f => `
+              <li>
+                <strong>Τοποθεσία:</strong> ${f.location}
+                <br><strong>Έκταση:</strong> ${f.area} στρέμματα
+                <br><strong>Συμβόλαιο:</strong> Από ${f.rental_start} έως ${f.rental_end}
+                <br><strong>Κωδικός Αγρού/Τίτλου:</strong> ${f.property_title_code}
+              </li>
+            `).join('')}
+          </ul>
+          <p><em>Η συμφωνία αυτή καλύπτει όλα τα ανωτέρω αγροτεμάχια που ανήκουν στον ίδιο ιδιοκτήτη.</em></p>
         </div>
-
-        <div class="content">
-            <div class="upload-section">
-                <h2>📁 Upload JSON File</h2>
-                <p>Select a JSON file containing tenant and field information</p>
-                <br>
-                <input type="file" id="jsonFile" accept=".json" class="file-input">
-                <label for="jsonFile" class="file-label">Choose JSON File</label>
-                <div id="fileName" style="margin-top: 15px; font-style: italic;"></div>
-            </div>
-
-            <div class="json-format">
-                <h3>📋 Supported JSON Formats:</h3>
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 300px;">
-                        <h4 style="color: #27ae60;">✅ Original Format (Auto-converted):</h4>
-                        <pre style="font-size: 0.8em;">{
-  "tenantName": "GreenFarm Enterprises",
-  "tenantEmail": "contact@greenfarm.com", 
-  "tenantTIN": "TENANT001",
-  "tenantAddress": "123 Farm Street",
-  "requestedFields": [0, 1, 2],
-  "fields": [
-    {
-      "tin": "TIN001",
-      "name": "John Smith",
-      "contact": "john@email.com",
-      "address": "456 Owner Ave",
-      "ownershipShare": 0.6,
-      "rentAmount": 1000
-    },
-    {
-      "tin": "TIN002", 
-      "name": "Mary Johnson",
-      "contact": "mary@email.com",
-      "address": "789 Property St",
-      "ownershipShare": 1.0,
-      "rentAmount": 1200
+      `;
     }
-  ]
-}</pre>
-                    </div>
-                    <div style="flex: 1; min-width: 300px;">
-                        <h4 style="color: #3498db;">✅ Standard Format:</h4>
-                        <pre style="font-size: 0.8em;">{
-  "tenant": {
-    "name": "GreenFarm Enterprises",
-    "contact": "contact@greenfarm.com",
-    "tin": "TENANT001", 
-    "address": "123 Farm Street"
-  },
-  "requestedFields": [0, 1, 2],
-  "fields": {
-    "0": [{
-      "tin": "TIN001",
-      "name": "John Smith",
-      "contact": "john@email.com",
-      "address": "456 Owner Ave",
-      "ownershipShare": 0.6,
-      "rentAmount": 1000
-    }],
-    "1": [{
-      "tin": "TIN002",
-      "name": "Mary Johnson",
-      "contact": "mary@email.com", 
-      "address": "789 Property St",
-      "ownershipShare": 1.0,
-      "rentAmount": 1200
-    }]
-  }
-}</pre>
-                    </div>
-                </div>
-                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                    <p><strong>🔄 Auto-Detection:</strong> The system automatically detects your JSON format and converts it if needed. You can upload either format!</p>
-                </div>
-            </div>
 
-            <div id="errorDiv"></div>
-            <div id="successDiv"></div>
+    // Parse and organize agreements by TIN
+    function processJson(data) {
+      // Will store { tin: { owner: {tin, full_name, ...}, fields: [fieldData, ...] } }
+      const agreementsByTin = {};
 
-            <div id="resultsSection" class="results-section">
-                <h2>📄 Generated Agreements</h2>
-                <div id="agreementsList"></div>
-                <button id="downloadAllBtn" class="download-btn">📥 Download All Agreements</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        class RentalAgreementManager {
-            constructor() {
-                this.agreements = [];
-            }
-
-            convertJsonFormat(originalData) {
-                try {
-                    // Convert original JSON format to expected format
-                    const tenantInfo = {
-                        name: originalData.tenantName || "GreenFarm Enterprises",
-                        contact: originalData.tenantEmail || "contact@greenfarm.com", 
-                        tin: originalData.tenantTIN || "TENANT001",
-                        address: originalData.tenantAddress || "123 Farm Street, Agricultural City"
-                    };
-
-                    const requestedFields = originalData.requestedFields || [0, 1, 2];
-
-                    const fieldData = {};
-                    const rawFields = originalData.fields || [];
-                    
-                    rawFields.forEach((field, idx) => {
-                        fieldData[idx.toString()] = [{
-                            tin: field.tin || "",
-                            name: field.name || "",
-                            contact: field.contact || "",
-                            address: field.address || "",
-                            ownershipShare: field.ownershipShare || 1.0,
-                            rentAmount: field.rentAmount || 0
-                        }];
-                    });
-
-                    return {
-                        tenant: tenantInfo,
-                        requestedFields: requestedFields,
-                        fields: fieldData
-                    };
-                } catch (error) {
-                    throw new Error(`Error converting JSON format: ${error.message}`);
-                }
-            }
-
-            processJsonData(jsonData) {
-                try {
-                    // Try to detect if we need to convert the format first
-                    let processedData = jsonData;
-                    
-                    // Check if this is the original format (has tenantName instead of tenant object)
-                    if (jsonData.tenantName || (jsonData.fields && Array.isArray(jsonData.fields))) {
-                        console.log('Detected original JSON format, converting...');
-                        processedData = this.convertJsonFormat(jsonData);
-                    }
-
-                    const { tenant, requestedFields, fields } = processedData;
-                    
-                    if (!tenant || !requestedFields || !fields) {
-                        throw new Error('Missing required fields: tenant, requestedFields, or fields');
-                    }
-
-                    const agreementsByTin = new Map();
-
-                    requestedFields.forEach(fieldId => {
-                        const fieldIdStr = fieldId.toString();
-                        if (!fields[fieldIdStr]) {
-                            console.warn(`Field ${fieldId} does not exist`);
-                            return;
-                        }
-
-                        const fieldOwners = fields[fieldIdStr];
-
-                        fieldOwners.forEach(owner => {
-                            const tin = owner.tin;
-                            
-                            if (!agreementsByTin.has(tin)) {
-                                agreementsByTin.set(tin, {
-                                    agreementId: `AGR_${tin}_${Date.now()}`,
-                                    ownerInfo: {
-                                        tin: owner.tin,
-                                        name: owner.name,
-                                        contact: owner.contact || '',
-                                        address: owner.address || ''
-                                    },
-                                    tenantInfo: tenant,
-                                    rentedFields: [],
-                                    totalRent: 0,
-                                    createdAt: new Date().toLocaleDateString()
-                                });
-                            }
-
-                            const agreement = agreementsByTin.get(tin);
-                            agreement.rentedFields.push({
-                                fieldId: fieldId,
-                                ownershipShare: owner.ownershipShare || 1,
-                                rentAmount: owner.rentAmount || 0
-                            });
-                            
-                            agreement.totalRent += (owner.rentAmount || 0);
-                        });
-                    });
-
-                    this.agreements = Array.from(agreementsByTin.values());
-                    return this.agreements;
-                } catch (error) {
-                    throw new Error(`Error processing JSON data: ${error.message}`);
-                }
-            }
-
-            generateWordDocument(agreement) {
-                const docContent = `
-                    <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px;">
-                        <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px;">RENTAL AGREEMENT</h1>
-                            <p style="color: #7f8c8d;">Agreement ID: ${agreement.agreementId}</p>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <h2 style="color: #27ae60; border-left: 4px solid #27ae60; padding-left: 10px;">PARTIES</h2>
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
-                                <h3 style="color: #2c3e50;">LESSOR (Owner):</h3>
-                                <p><strong>Name:</strong> ${agreement.ownerInfo.name}</p>
-                                <p><strong>TIN:</strong> ${agreement.ownerInfo.tin}</p>
-                                <p><strong>Contact:</strong> ${agreement.ownerInfo.contact}</p>
-                                <p><strong>Address:</strong> ${agreement.ownerInfo.address}</p>
-                            </div>
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
-                                <h3 style="color: #2c3e50;">LESSEE (Tenant):</h3>
-                                <p><strong>Name:</strong> ${agreement.tenantInfo.name}</p>
-                                <p><strong>TIN:</strong> ${agreement.tenantInfo.tin}</p>
-                                <p><strong>Contact:</strong> ${agreement.tenantInfo.contact}</p>
-                                <p><strong>Address:</strong> ${agreement.tenantInfo.address}</p>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <h2 style="color: #e74c3c; border-left: 4px solid #e74c3c; padding-left: 10px;">RENTAL PROPERTIES</h2>
-                            <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-                                <thead>
-                                    <tr style="background: #34495e; color: white;">
-                                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Field ID</th>
-                                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Ownership Share</th>
-                                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Rent Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${agreement.rentedFields.map(field => `
-                                        <tr style="background: ${agreement.rentedFields.indexOf(field) % 2 === 0 ? '#f8f9fa' : 'white'};">
-                                            <td style="padding: 10px; border: 1px solid #ddd;">Field ${field.fieldId}</td>
-                                            <td style="padding: 10px; border: 1px solid #ddd;">${(field.ownershipShare * 100).toFixed(1)}%</td>
-                                            <td style="padding: 10px; border: 1px solid #ddd;">$${field.rentAmount}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                            <div style="text-align: right; margin-top: 15px;">
-                                <strong style="font-size: 1.2em; color: #e74c3c;">Total Rent: $${agreement.totalRent}</strong>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <h2 style="color: #9b59b6; border-left: 4px solid #9b59b6; padding-left: 10px;">TERMS AND CONDITIONS</h2>
-                            <ol style="padding-left: 20px;">
-                                <li style="margin-bottom: 10px;"><strong>Rental Period:</strong> This agreement shall commence on the date signed and continue for a period of one (1) year, unless terminated earlier in accordance with the provisions herein.</li>
-                                <li style="margin-bottom: 10px;"><strong>Rent Payment:</strong> The total monthly rent of $${agreement.totalRent} shall be paid in advance on the first day of each month.</li>
-                                <li style="margin-bottom: 10px;"><strong>Property Use:</strong> The rented fields shall be used solely for agricultural purposes and in accordance with local zoning laws.</li>
-                                <li style="margin-bottom: 10px;"><strong>Maintenance:</strong> The tenant shall maintain the property in good condition and is responsible for any damages caused by misuse.</li>
-                                <li style="margin-bottom: 10px;"><strong>Termination:</strong> Either party may terminate this agreement with 30 days written notice.</li>
-                            </ol>
-                        </div>
-
-                        <div style="margin-top: 40px;">
-                            <table style="width: 100%; margin-top: 50px;">
-                                <tr>
-                                    <td style="width: 50%; text-align: center; padding-top: 30px; border-top: 1px solid #000;">
-                                        <strong>LESSOR SIGNATURE</strong><br>
-                                        ${agreement.ownerInfo.name}<br>
-                                        Date: ________________
-                                    </td>
-                                    <td style="width: 50%; text-align: center; padding-top: 30px; border-top: 1px solid #000;">
-                                        <strong>LESSEE SIGNATURE</strong><br>
-                                        ${agreement.tenantInfo.name}<br>
-                                        Date: ________________
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em;">
-                            <p>Agreement generated on ${agreement.createdAt}</p>
-                        </div>
-                    </div>
-                `;
-
-                return docContent;
-            }
-
-            downloadAsWord(agreement, filename) {
-                const htmlContent = this.generateWordDocument(agreement);
-                
-                // Create a complete HTML document
-                const fullHtml = `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Rental Agreement - ${agreement.ownerInfo.name}</title>
-                    </head>
-                    <body>
-                        ${htmlContent}
-                    </body>
-                    </html>
-                `;
-                
-                const blob = new Blob([fullHtml], { 
-                    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-                });
-                
-                saveAs(blob, filename || `Agreement_${agreement.ownerInfo.name.replace(/\s+/g, '_')}_${agreement.agreementId}.doc`);
-            }
-        }
-
-        // Initialize the application
-        const rentalManager = new RentalAgreementManager();
-
-        document.getElementById('jsonFile').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const fileName = document.getElementById('fileName');
-            const errorDiv = document.getElementById('errorDiv');
-            const successDiv = document.getElementById('successDiv');
-            const resultsSection = document.getElementById('resultsSection');
-            
-            // Clear previous messages
-            errorDiv.innerHTML = '';
-            successDiv.innerHTML = '';
-            resultsSection.style.display = 'none';
-            
-            if (file) {
-                fileName.textContent = `Selected: ${file.name}`;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const jsonData = JSON.parse(e.target.result);
-                        
-                        // Show conversion info if original format detected
-                        if (jsonData.tenantName || (jsonData.fields && Array.isArray(jsonData.fields))) {
-                            successDiv.innerHTML = `<div class="success">🔄 Detected original format - automatically converting to standard format...</div>`;
-                        }
-                        
-                        const agreements = rentalManager.processJsonData(jsonData);
-                        
-                        successDiv.innerHTML = `<div class="success">✅ Successfully processed ${agreements.length} rental agreements!</div>`;
-                        
-                        displayAgreements(agreements);
-                        resultsSection.style.display = 'block';
-                        
-                    } catch (error) {
-                        errorDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
-                    }
-                };
-                reader.readAsText(file);
-            }
+      // Process each field in the field_list
+      (data.field_list || []).forEach(field => {
+        // Each field can have multiple property/owners
+        (field.field_property_list || []).forEach(ownerProp => {
+          // Identify owner by TIN, merge if already exists
+          if (!agreementsByTin[ownerProp.tin]) {
+            agreementsByTin[ownerProp.tin] = {
+              owner: {
+                tin: ownerProp.tin,
+                full_name: ownerProp.full_name
+              },
+              fields: []
+            };
+          }
+          agreementsByTin[ownerProp.tin].fields.push({
+            location: field.field_info && field.field_info.location ? field.field_info.location : 'Άγνωστη',
+            area: field.field_geospatial_data && field.field_geospatial_data.area ? field.field_geospatial_data.area : 'N/A',
+            rental_start: ownerProp.rental_start_date ? ownerProp.rental_start_date.split(' ')[0] : '-',
+            rental_end: ownerProp.rental_end_date ? ownerProp.rental_end_date.split(' ')[0] : '-',
+            property_title_code: ownerProp.property_title_code || ''
+          });
         });
+      });
 
-        function displayAgreements(agreements) {
-            const agreementsList = document.getElementById('agreementsList');
-            agreementsList.innerHTML = '';
-            
-            agreements.forEach((agreement, index) => {
-                const agreementCard = document.createElement('div');
-                agreementCard.className = 'agreement-card';
-                agreementCard.innerHTML = `
-                    <div class="agreement-header">
-                        <h3>Agreement #${index + 1} - ${agreement.ownerInfo.name}</h3>
-                        <p>TIN: ${agreement.ownerInfo.tin} | Total Rent: $${agreement.totalRent}</p>
-                    </div>
-                    <div>
-                        <h4>Tenant: ${agreement.tenantInfo.name}</h4>
-                        <h4>Rented Fields:</h4>
-                        <ul class="field-list">
-                            ${agreement.rentedFields.map(field => 
-                                `<li class="field-item">Field ${field.fieldId} - Share: ${(field.ownershipShare * 100).toFixed(1)}% - Rent: $${field.rentAmount}</li>`
-                            ).join('')}
-                        </ul>
-                        <button class="download-btn" onclick="downloadSingleAgreement(${index})">
-                            📄 Download This Agreement
-                        </button>
-                    </div>
-                `;
-                agreementsList.appendChild(agreementCard);
-            });
+      return agreementsByTin;
+    }
+
+    // Display agreements as HTML
+    function displayAgreements(agreementsByTin) {
+      const container = document.getElementById('output');
+      container.innerHTML = '';
+      Object.values(agreementsByTin).forEach(({owner, fields}) => {
+        container.innerHTML += agreementTemplate(owner, fields);
+      });
+    }
+
+    // File Input Handler
+    document.getElementById('fileInput').addEventListener('change', function(event){
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        let jsonData = null;
+        try {
+          jsonData = JSON.parse(e.target.result);
+        } catch (err) {
+          alert('Το αρχείο δεν είναι σωστό JSON!');
+          return;
         }
-
-        function downloadSingleAgreement(index) {
-            const agreement = rentalManager.agreements[index];
-            rentalManager.downloadAsWord(agreement);
-        }
-
-        document.getElementById('downloadAllBtn').addEventListener('click', function() {
-            rentalManager.agreements.forEach((agreement, index) => {
-                setTimeout(() => {
-                    rentalManager.downloadAsWord(agreement, `Agreement_${index + 1}_${agreement.ownerInfo.name.replace(/\s+/g, '_')}.doc`);
-                }, index * 500); // Stagger downloads by 500ms
-            });
-        });
-    </script>
+        const agreementsByTin = processJson(jsonData);
+        displayAgreements(agreementsByTin);
+      };
+      reader.readAsText(file);
+    });
+  </script>
 </body>
 </html>
+
