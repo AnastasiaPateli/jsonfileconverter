@@ -748,3 +748,137 @@
                                 alignment: AlignmentType.CENTER,
                                 spacing: { after: 400 }
                             }),
+
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Ο ΕΚΜΙΣΘΩΤΗΣ",
+                                        size: 20,
+                                        font: "Times New Roman"
+                                    }),
+                                    new TextRun({
+                                        text: "\t\t\t\tΘΕΩΡΗΘΗΚΕ",
+                                        size: 20,
+                                        font: "Times New Roman"
+                                    }),
+                                    new TextRun({
+                                        text: "\t\t\t\tΟ ΜΙΣΘΩΤΗΣ",
+                                        size: 20,
+                                        font: "Times New Roman"
+                                    })
+                                ],
+                                spacing: { after: 600 }
+                            }),
+
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "____________________",
+                                        size: 20,
+                                        font: "Times New Roman"
+                                    }),
+                                    new TextRun({
+                                        text: "\t\t____________________",
+                                        size: 20,
+                                        font: "Times New Roman"
+                                    }),
+                                    new TextRun({
+                                        text: "\t\t____________________",
+                                        size: 20,
+                                        font: "Times New Roman"
+                                    })
+                                ],
+                                spacing: { after: 400 }
+                            }),
+
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Για το γνήσιο των υπογραφών",
+                                        size: 22,
+                                        font: "Times New Roman"
+                                    })
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                spacing: { after: 200 }
+                            }),
+
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `ΗΜΕΡΟΜΗΝΙΑ: ${currentDate}`,
+                                        size: 22,
+                                        font: "Times New Roman"
+                                    })
+                                ],
+                                alignment: AlignmentType.CENTER
+                            })
+                        ]
+                    }]
+                });
+
+                const filename = utils.sanitizeFilename(`Συμφωνητικό_${agreement.owner.full_name}_${agreement.owner.tin}.docx`);
+                
+                docx.Packer.toBlob(doc).then(blob => {
+                    saveAs(blob, filename);
+                    utils.showSuccess(`Το συμφωνητικό για ${agreement.owner.full_name} κατέβηκε επιτυχώς!`);
+                }).catch(error => {
+                    utils.showError('Σφάλμα αποθήκευσης εγγράφου: ' + error.message);
+                });
+
+            } catch (error) {
+                utils.showError('Σφάλμα δημιουργίας εγγράφου: ' + error.message);
+            }
+        }
+
+        // Additional utility functions for future enhancements
+        const advancedFeatures = {
+            exportToCSV() {
+                if (!state.agreements.length) return;
+                
+                let csvContent = "Ιδιοκτήτης,ΑΦΜ,Κοινότητα,Τοποθεσία,ΑΤΑΚ,Αρ.Κτημ.Τεμ.,Χαρτογραφικό,Έκταση\n";
+                
+                state.agreements.forEach(agreement => {
+                    agreement.fields.forEach(field => {
+                        csvContent += `"${agreement.owner.full_name}","${agreement.owner.tin}","${field.community}","${field.location}","${field.atak}","${field.property_number}","${field.cartographic}","${field.area_ha}"\n`;
+                    });
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                saveAs(blob, `Αγροί_Συνολικός_Κατάλογος_${new Date().toISOString().split('T')[0]}.csv`);
+            },
+            
+            printPreview() {
+                // Future feature: Show print preview
+                console.log('Print preview feature - to be implemented');
+            }
+        };
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'o':
+                        e.preventDefault();
+                        elements.jsonFile.click();
+                        break;
+                    case 'r':
+                        e.preventDefault();
+                        clearData();
+                        break;
+                }
+            }
+        });
+
+        // Auto-save form state (for future enhancement)
+        const formState = {
+            save() {
+                // Future: Save form state to localStorage if needed
+            },
+            restore() {
+                // Future: Restore form state from localStorage if needed
+            }
+        };
+    </script>
+</body>
+</html>
