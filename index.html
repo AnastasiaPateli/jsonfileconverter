@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenancy Agreement Generator</title>
+    <title>Ιδιωτικό Συμφωνητικό Αγρομίσθωσης</title>
     <!-- Load libraries with fallback CDN -->
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -57,7 +57,7 @@
 </head>
 <body>
     <div class="upload-section">
-        <h2>Tenancy Agreement Generator</h2>
+        <h2>Ιδιωτικό Συμφωνητικό Αγρομίσθωσης </h2>
         <input type="file" id="jsonFile" accept=".json">
         <div id="error" class="error"></div>
     </div>
@@ -235,7 +235,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `αφενός ο/η ${agreement.owner.full_name} του -, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`,
+                                    text: `αφενός ο/η ${agreement.owner.full_name} του ${agreement.owner.father_name}, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`,
                                     size: 24,
                                     font: "Arial"
                                 })
