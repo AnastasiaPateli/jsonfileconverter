@@ -172,11 +172,11 @@
                 agreement.fields.forEach((field, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${index + 1}</td>
+                        <td>${field.serial_number}</td>
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
-                        <td>${field.property_number}</td>
+                        <td>${field.other_cartographic_number}</td>
                         <td>${field.cartographic}</td>
                         <td>${field.area_ha}</td>
                     `;
