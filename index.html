@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ιδιωτικό Συμφωνητικό Αγρομίσθωσης</title>
+    <title>Tenancy Agreement Generator</title>
     <!-- Load libraries with fallback CDN -->
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -57,7 +57,7 @@
 </head>
 <body>
     <div class="upload-section">
-        <h2>Ιδιωτικό Συμφωνητικό Αγρομίσθωσης </h2>
+        <h2>Tenancy Agreement Generator</h2>
         <input type="file" id="jsonFile" accept=".json">
         <div id="error" class="error"></div>
     </div>
@@ -136,11 +136,12 @@
                         };
                     }
                     agreementsByTin[tin].fields.push({
+                        serial_number: fieldInfo.serial_number || '-',
                         community: fieldInfo.location ? fieldInfo.location.split('-')[0] : 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
                         property_number: property.legal_possession_document_number || '-',
-                        cartographic: geospatialData.cartographic_background || '-',
+                        other_cartographic_background: geospatialData.other_cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0'
                     });
                 });
@@ -169,15 +170,15 @@
                         <th>ΕΚΤΑΣΗ (Ha)</th>
                     </tr>
                 `;
-                agreement.fields.forEach((field, index) => {
+                agreement.fields.forEach(field => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${field.serial_number}</td>
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
-                        <td>${field.other_cartographic_number}</td>
-                        <td>${field.cartographic}</td>
+                        <td>${field.property_number}</td>
+                        <td>${field.other_cartographic_background}</td>
                         <td>${field.area_ha}</td>
                     `;
                     table.appendChild(row);
@@ -235,7 +236,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `αφενός ο/η ${agreement.owner.full_name} του ${agreement.owner.father_name}, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`,
+                                    text: `αφενός ο/η ${agreement.owner.full_name} του -, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -282,14 +283,14 @@
                                         new TableCell({ children: [new Paragraph("ΕΚΤΑΣΗ (Ha)")], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
-                                ...agreement.fields.map((field, index) => new TableRow({
+                                ...agreement.fields.map(field => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph(`${index + 1}`)] }),
+                                        new TableCell({ children: [new Paragraph(field.serial_number)] }),
                                         new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
                                         new TableCell({ children: [new Paragraph(field.property_number)] }),
-                                        new TableCell({ children: [new Paragraph(field.cartographic)] }),
+                                        new TableCell({ children: [new Paragraph(field.other_cartographic_background)] }),
                                         new TableCell({ children: [new Paragraph(field.area_ha.toString())] })
                                     ]
                                 }))
