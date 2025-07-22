@@ -140,8 +140,8 @@
                         community: fieldInfo.location ? fieldInfo.location.split('-')[0] : 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
-                        property_number: property.legal_possession_document_number || '-',
                         other_cartographic_background: geospatialData.other_cartographic_background || '-',
+                        cartographic_background: geospatialData.cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0'
                     });
                 });
@@ -177,8 +177,8 @@
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
-                        <td>${field.property_number}</td>
                         <td>${field.other_cartographic_background}</td>
+                        <td>${field.cartographic_background}</td>
                         <td>${field.area_ha}</td>
                     `;
                     table.appendChild(row);
@@ -289,8 +289,8 @@
                                         new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
-                                        new TableCell({ children: [new Paragraph(field.property_number)] }),
                                         new TableCell({ children: [new Paragraph(field.other_cartographic_background)] }),
+                                        new TableCell({ children: [new Paragraph(field.cartographic_background)] }),
                                         new TableCell({ children: [new Paragraph(field.area_ha.toString())] })
                                     ]
                                 }))
