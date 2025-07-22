@@ -140,7 +140,7 @@
                         community: fieldInfo.location ? fieldInfo.location.split('-')[0] : 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
-                        other_cartographic_background: geospatialData.other_cartographic_background || '-',
+                        other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0'
                     });
@@ -170,15 +170,15 @@
                         <th>ΕΚΤΑΣΗ (Ha)</th>
                     </tr>
                 `;
-                agreement.fields.forEach(field => {
+                agreement.fields.forEach((field, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${field.serial_number}</td>
+                        <td>${index + 1}</td>
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
-                        <td>${field.other_cartographic_background}</td>
-                        <td>${field.cartographic_background}</td>
+                        <td>${field.property_number}</td>
+                        <td>${field.cartographic}</td>
                         <td>${field.area_ha}</td>
                     `;
                     table.appendChild(row);
