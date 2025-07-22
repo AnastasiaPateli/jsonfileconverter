@@ -137,7 +137,7 @@
                     }
                     agreementsByTin[tin].fields.push({
                         serial_number: geospatialData.serial_number || '-',
-                        community: fieldInfo.location ? fieldInfo.location.split('-')[0] : 'Unknown',
+                        community: geospatialData.community_code || 'Unknown', // Updated to use community_code
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
@@ -174,7 +174,7 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${index + 1}</td>
-                        <td>${field.community}</td>
+                        <td>${field.community}</td> <!-- Updated to show community_code -->
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
                         <td>${field.other_cartographic_background}</td>
@@ -286,7 +286,7 @@
                                 ...agreement.fields.map(field => new TableRow({
                                     children: [
                                         new TableCell({ children: [new Paragraph(field.serial_number)] }),
-                                        new TableCell({ children: [new Paragraph(field.community)] }),
+                                        new TableCell({ children: [new Paragraph(field.community)] }), // Updated to show community_code
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
                                         new TableCell({ children: [new Paragraph(field.other_cartographic_background)] }),
