@@ -109,7 +109,7 @@
             const fields = Array.isArray(data.field_list) ? data.field_list : [];
             const tenant = {
                 ...data.applicant_detail || {},
-                tin: fields.length > 0 ? fields[0].tin || 'Not Available' : 'Not Available'
+                tin: data.tin || (fields.length > 0 ? fields[0].tin || 'Not Available' : 'Not Available')
             };
             console.log('Tenant data:', tenant); // Debug: Log tenant object to check tin
 
@@ -128,7 +128,7 @@
                 const geospatialData = field.field_geospatial_data || {};
 
                 propertyList.forEach(property => {
-                    const tin = property.tin || 'unknown_tin_' + Math.random().toString(36).substr(2, 9);
+                    const tin = property.tin || 'Unknown';
                     if (!agreementsByTin[tin]) {
                         agreementsByTin[tin] = {
                             owner: {
