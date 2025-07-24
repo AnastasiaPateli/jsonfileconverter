@@ -170,11 +170,11 @@
                         <th>ΕΚΤΑΣΗ (Ha)</th>
                     </tr>
                 `;
-                agreement.fields.forEach((field) => {
+               agreement.fields.forEach((field, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${field.code}</td> <!-- Using field_list.[].code for Α/Α -->
-                        <td>${field.community}</td>
+                        <td>${index + 1}</td>
+                        <td>${field.community}</td> <!-- Updated to show community_code -->
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
                         <td>${field.other_cartographic_background}</td>
@@ -283,9 +283,9 @@
                                         new TableCell({ children: [new Paragraph("ΕΚΤΑΣΗ (Ha)")], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
-                                ...agreement.fields.map(field => new TableRow({
+                                ...agreement.fields.map(field, index => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph(field.code)] }), 
+                                        new TableCell({ children: [new Paragraph(index + 1)] }), 
                                         new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
