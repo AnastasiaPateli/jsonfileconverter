@@ -58,6 +58,10 @@
             color: red;
             margin: 10px 0;
         }
+        .agreement-count {
+            margin: 10px 0;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -65,7 +69,7 @@
         <h2>Tenancy Agreement Generator</h2>
         <input type="file" id="jsonFile" accept=".json">
         <div id="error" class="error"></div>
-        <div id="downloadAllContainer"></div> <!-- Container for Download All button -->
+        <div id="downloadAllContainer"></div> <!-- Container for Download All button and agreement count -->
     </div>
     <div class="agreements-section" id="agreements"></div>
 
@@ -221,9 +225,15 @@
                 generateDocx(agreement, tenant, true);
             });
 
-            // Add or update Download All button at the top
+            // Add or update Download All button and agreement count at the top
             downloadAllContainer.innerHTML = '';
-            if (Object.keys(agreementsByTin).length > 0) {
+            const totalAgreements = Object.keys(agreementsByTin).length;
+            if (totalAgreements > 0) {
+                const countDiv = document.createElement('div');
+                countDiv.className = 'agreement-count';
+                countDiv.textContent = `Total Agreements Generated: ${totalAgreements}`;
+                downloadAllContainer.appendChild(countDiv);
+
                 const downloadAllBtn = document.createElement('button');
                 downloadAllBtn.className = 'download-all-btn';
                 downloadAllBtn.textContent = 'Download All Agreements';
