@@ -173,7 +173,7 @@
                 agreement.fields.forEach((field) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${field.code}</td> 
+                        <td>${field.code}</td> <!-- Using field_list.[].code for Α/Α -->
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
