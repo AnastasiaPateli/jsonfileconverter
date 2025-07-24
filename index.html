@@ -7,6 +7,7 @@
     <!-- Load libraries with fallback CDN -->
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
         // Fallback for docx.js
         if (!window.docx) {
@@ -15,6 +16,10 @@
         // Fallback for FileSaver.js
         if (!window.saveAs) {
             document.write('<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"><\/script>');
+        }
+        // Fallback for JSZip
+        if (!window.JSZip) {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
         }
     </script>
     <style>
@@ -37,7 +42,7 @@
             padding: 15px;
             margin-bottom: 10px;
         }
-        .download-btn {
+        .download-btn, .download-all-btn {
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -67,12 +72,13 @@
         const jsonFileInput = document.getElementById('jsonFile');
         const agreementsDiv = document.getElementById('agreements');
         const errorDiv = document.getElementById('error');
+        let agreementBlobs = []; // Store blobs for all agreements
 
         // Check if required libraries are loaded
         window.addEventListener('load', () => {
-            if (!window.docx || !window.saveAs) {
-                errorDiv.textContent = 'Required libraries (docx.js or FileSaver.js) failed to load. Please try again later.';
-                console.error('Library Load Failure:', { docx: !!window.docx, saveAs: !!window.saveAs });
+            if (!window.docx || !window.saveAs || !window.JSZip) {
+                errorDiv.textContent = 'Required libraries (docx.js, FileSaver.js, or JSZip) failed to load. Please try again later.';
+                console.error('Library Load Failure:', { docx: !!window.docx, saveAs: !!window.saveAs, JSZip: !!window.JSZip });
             }
         });
 
@@ -90,6 +96,7 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
+                    agreementBlobs = []; // Reset blobs on new upload
                     generateAgreements(data);
                     errorDiv.textContent = '';
                 } catch (error) {
@@ -111,7 +118,7 @@
                 ...data.applicant_detail || {},
                 tin: data.tin || (fields.length > 0 ? fields[0].tin || 'Not Available' : 'Not Available')
             };
-            console.log('Tenant data:', tenant); // Debug: Log tenant object to check tin
+            console.log('Tenant data:', tenant);
 
             if (!fields.length) {
                 errorDiv.textContent = 'No fields found in the JSON data.';
@@ -129,7 +136,6 @@
 
                 propertyList.forEach(property => {
                     const tin = property.tin || 'Unknown';
-                    // Skip if owner's TIN matches tenant's TIN
                     if (tin === tenant.tin) {
                         console.log(`Skipping agreement for owner TIN ${tin} as it matches tenant TIN ${tenant.tin}`);
                         return;
@@ -208,10 +214,22 @@
                 agreementDiv.appendChild(downloadBtn);
 
                 agreementsDiv.appendChild(agreementDiv);
+
+                // Generate and store blob for this agreement
+                generateDocx(agreement, tenant, true);
             });
+
+            // Add Download All button if there are agreements
+            if (Object.keys(agreementsByTin).length > 0) {
+                const downloadAllBtn = document.createElement('button');
+                downloadAllBtn.className = 'download-all-btn';
+                downloadAllBtn.textContent = 'Download All Agreements';
+                downloadAllBtn.onclick = downloadAllAgreements;
+                agreementsDiv.appendChild(downloadAllBtn);
+            }
         }
 
-        function generateDocx(agreement, tenant) {
+        function generateDocx(agreement, tenant, storeBlob = false) {
             if (!window.docx || !window.saveAs) {
                 throw new Error('Required libraries (docx.js or FileSaver.js) are not loaded.');
             }
@@ -362,15 +380,6 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "                                   ",
-                                    size: 35,
-                                    font: "Arial"
-                                })
-                            ]
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
                                     text: "ΟΙ ΣΥΜΒΑΛΛΟΜΕΝΟΙ",
                                     bold: true,
                                     size: 24,
@@ -382,26 +391,8 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "                                   ",
-                                    size: 35,
-                                    font: "Arial"
-                                })
-                            ]
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
                                     text: "Ο ΕΚΜΙΣΘΩΤΗΣ ____________________  Ο ΜΙΣΘΩΤΗΣ ____________________",
                                     size: 24,
-                                    font: "Arial"
-                                })
-                            ]
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 35,
                                     font: "Arial"
                                 })
                             ]
@@ -484,12 +475,37 @@
                 }]
             });
 
-            docx.Packer.toBlob(doc).then(blob => {
-                saveAs(blob, `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx`);
-                console.log('Document generated and downloaded successfully.');
+            return docx.Packer.toBlob(doc).then(blob => {
+                if (storeBlob) {
+                    agreementBlobs.push({ blob, filename: `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx` });
+                } else {
+                    saveAs(blob, `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx`);
+                }
+                console.log('Document generated successfully.');
             }).catch(error => {
-                errorDiv.textContent = 'Error saving document: ' + error.message;
-                console.error('Document Save Error:', error);
+                errorDiv.textContent = 'Error generating document: ' + error.message;
+                console.error('Document Generation Error:', error);
+            });
+        }
+
+        function downloadAllAgreements() {
+            if (!window.JSZip || agreementBlobs.length === 0) {
+                errorDiv.textContent = 'Unable to download all agreements. JSZip not loaded or no agreements generated.';
+                console.error('Download All Failure:', { JSZip: !!window.JSZip, agreementBlobsLength: agreementBlobs.length });
+                return;
+            }
+
+            const zip = new JSZip();
+            agreementBlobs.forEach((item, index) => {
+                zip.file(item.filename, item.blob);
+            });
+
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                saveAs(content, 'All_Agreements_' + new Date().toISOString().slice(0, 10) + '.zip');
+                console.log('All agreements downloaded as ZIP.');
+            }).catch(error => {
+                errorDiv.textContent = 'Error creating ZIP file: ' + error.message;
+                console.error('ZIP Generation Error:', error);
             });
         }
     </script>
