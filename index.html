@@ -65,6 +65,7 @@
         <h2>Tenancy Agreement Generator</h2>
         <input type="file" id="jsonFile" accept=".json">
         <div id="error" class="error"></div>
+        <div id="downloadAllContainer"></div> <!-- Container for Download All button -->
     </div>
     <div class="agreements-section" id="agreements"></div>
 
@@ -72,6 +73,7 @@
         const jsonFileInput = document.getElementById('jsonFile');
         const agreementsDiv = document.getElementById('agreements');
         const errorDiv = document.getElementById('error');
+        const downloadAllContainer = document.getElementById('downloadAllContainer');
         let agreementBlobs = []; // Store blobs for all agreements
 
         // Check if required libraries are loaded
@@ -219,13 +221,14 @@
                 generateDocx(agreement, tenant, true);
             });
 
-            // Add Download All button if there are agreements
+            // Add or update Download All button at the top
+            downloadAllContainer.innerHTML = '';
             if (Object.keys(agreementsByTin).length > 0) {
                 const downloadAllBtn = document.createElement('button');
                 downloadAllBtn.className = 'download-all-btn';
                 downloadAllBtn.textContent = 'Download All Agreements';
                 downloadAllBtn.onclick = downloadAllAgreements;
-                agreementsDiv.appendChild(downloadAllBtn);
+                downloadAllContainer.appendChild(downloadAllBtn);
             }
         }
 
@@ -290,7 +293,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτής\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
+                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτή\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -362,7 +365,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
+                                    text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλευεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλεια του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -371,7 +374,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.",
+                                    text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλόμενους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.",
                                     size: 24,
                                     font: "Arial"
                                 })
