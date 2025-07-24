@@ -119,7 +119,7 @@
                 return;
             }
 
-            // Group fields by owner TIN
+            // Group fields by owner TIN, skipping if owner TIN matches tenant TIN
             const agreementsByTin = {};
 
             fields.forEach(field => {
@@ -129,6 +129,11 @@
 
                 propertyList.forEach(property => {
                     const tin = property.tin || 'Unknown';
+                    // Skip if owner's TIN matches tenant's TIN
+                    if (tin === tenant.tin) {
+                        console.log(`Skipping agreement for owner TIN ${tin} as it matches tenant TIN ${tenant.tin}`);
+                        return;
+                    }
                     if (!agreementsByTin[tin]) {
                         agreementsByTin[tin] = {
                             owner: {
