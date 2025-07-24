@@ -137,7 +137,7 @@
                     }
                     agreementsByTin[tin].fields.push({
                         serial_number: geospatialData.serial_number || '-',
-                        community: geospatialData.community_code || 'Unknown', // Updated to use community_code
+                        community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
@@ -174,7 +174,7 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${index + 1}</td>
-                        <td>${field.community}</td> <!-- Updated to show community_code -->
+                        <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
                         <td>${field.other_cartographic_background}</td>
@@ -286,7 +286,7 @@
                                 ...agreement.fields.map(field => new TableRow({
                                     children: [
                                         new TableCell({ children: [new Paragraph(field.serial_number)] }),
-                                        new TableCell({ children: [new Paragraph(field.community)] }), // Updated to show community_code
+                                        new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
                                         new TableCell({ children: [new Paragraph(field.other_cartographic_background)] }),
@@ -353,7 +353,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "ΟΙ ΣΥΜΒΑΛΛΟΜΕΝΟΙ",
+                                    text: "ΥΠΟΓΡΑΦΕΣ ΤΩΝ ΣΥΜΒΑΛΛΟΜΕΝΩΝ",
                                     bold: true,
                                     size: 24,
                                     font: "Arial"
@@ -364,8 +364,9 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Ο ΕΚΜΙΣΘΩΤΗΣ ____________________ ΘΕΩΡΗΘΗΚΕ ____________________ Ο ΜΙΣΘΩΤΗΣ ____________________",
-                                    size: 24,
+                                    text: "ΕΚΜΙΣΘΩΤΗΣ",
+                                    bold: true,
+                                    size: 20,
                                     font: "Arial"
                                 })
                             ]
@@ -373,8 +374,17 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Για το γνήσιο των υπογραφών",
-                                    size: 24,
+                                    text: `${agreement.owner.full_name} (Α.Φ.Μ: ${agreement.owner.tin})`,
+                                    size: 18,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "_______________________________",
+                                    size: 18,
                                     font: "Arial"
                                 })
                             ],
@@ -383,8 +393,76 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 1η Νοεμβρίου 2024",
-                                    size: 24,
+                                    text: "Ημερομηνία: ____________________",
+                                    size: 18,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "ΜΙΣΘΩΤΗΣ",
+                                    bold: true,
+                                    size: 20,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} (Α.Φ.Μ: ${tenant.tin || '-'})`,
+                                    size: 18,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "_______________________________",
+                                    size: 18,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: "center"
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "Ημερομηνία: ____________________",
+                                    size: 18,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "ΓΙΑ ΤΟ ΓΝΗΣΙΟ ΤΩΝ ΥΠΟΓΡΑΦΩΝ",
+                                    bold: true,
+                                    size: 20,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: "center"
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "_______________________________",
+                                    size: 18,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: "center"
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `Ημερομηνία: ${new Date().toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+                                    size: 18,
                                     font: "Arial"
                                 })
                             ],
