@@ -137,7 +137,7 @@
                     }
                     agreementsByTin[tin].fields.push({
                         serial_number: geospatialData.serial_number || '-',
-                        community: geospatialData.community_code || 'Unknown', // Updated to use community_code
+                        community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
@@ -170,11 +170,11 @@
                         <th>ΕΚΤΑΣΗ (Ha)</th>
                     </tr>
                 `;
-                agreement.fields.forEach((field, index) => {
+                agreement.fields.forEach((field) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${field.community}</td> <!-- Updated to show community_code -->
+                        <td>${field.serial_number}</td> <!-- Updated to show serial_number -->
+                        <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
                         <td>${field.other_cartographic_background}</td>
@@ -236,7 +236,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `αφενός ο/η ${agreement.owner.full_name}, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`,
+                                    text: `αφενός ο/η ${agreement.owner.full_name} του -, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -285,8 +285,8 @@
                                 }),
                                 ...agreement.fields.map(field => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph(field.serial_number)] }),
-                                        new TableCell({ children: [new Paragraph(field.community)] }), // Updated to show community_code
+                                        new TableCell({ children: [new Paragraph(field.serial_number)] }), // Updated to show serial_number
+                                        new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
                                         new TableCell({ children: [new Paragraph(field.other_cartographic_background)] }),
@@ -364,82 +364,13 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Ο ΕΚΜΙΣΘΩΤΗΣ ____________________ Ο ΜΙΣΘΩΤΗΣ ____________________",
+                                    text: "Ο ΕΚΜΙΣΘΩΤΗΣ ____________________ ΘΕΩΡΗΘΗΚΕ ____________________ Ο ΜΙΣΘΩΤΗΣ ____________________",
                                     size: 24,
                                     font: "Arial"
                                 })
                             ]
                         }),
                         new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                                             ",
-                                    size: 30,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: "center"
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "ΘΕΩΡΗΘΗΚΕ ____________________ ",
-                                    size: 24,
-                                    font: "Arial"
-                               })
-                            ]
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                                             ",
-                                    size: 30,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: "center"
-                        }),
-                      new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                                             ",
-                                    size: 30,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: "center"
-                        }),
-                      new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                                             ",
-                                    size: 24,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: "center"
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                                             ",
-                                    size: 30,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: "center"
-                        }),
-                      new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                                             ",
-                                    size: 30,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: "center"
-                        }),
-                    new Paragraph({
                             children: [
                                 new TextRun({
                                     text: "Για το γνήσιο των υπογραφών",
@@ -473,5 +404,4 @@
         }
     </script>
 </body>
-</html>
 </html>
