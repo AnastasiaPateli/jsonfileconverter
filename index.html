@@ -173,7 +173,7 @@
                 agreement.fields.forEach((field) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${field.serial_number}</td> <!-- Updated to show serial_number -->
+                        <td>${field.code}</td> 
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
@@ -275,7 +275,7 @@
                                 new TableRow({
                                     children: [
                                         new TableCell({ children: [new Paragraph("Α/Α")], width: { size: 5, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΚΟΙΝΟΤΗΤΑ")], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph("ΚΟΙΝΟΤΗΤΑ (κωδ.)")], width: { size: 15, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("ΤΟΠΟΘΕΣΙΑ")], width: { size: 20, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("Α.Τ.Α.Κ.")], width: { size: 20, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("ΑΡ.ΚΤΗΜ.ΤΕΜ.")], width: { size: 15, type: WidthType.PERCENTAGE } }),
@@ -285,7 +285,7 @@
                                 }),
                                 ...agreement.fields.map(field => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph(field.serial_number)] }), // Updated to show serial_number
+                                        new TableCell({ children: [new Paragraph(field.code)] }), 
                                         new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
