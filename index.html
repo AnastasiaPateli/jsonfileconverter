@@ -107,6 +107,7 @@
         function generateAgreements(data) {
             agreementsDiv.innerHTML = '';
             const tenant = data.applicant_detail || {};
+            console.log('Tenant data:', tenant); // Debug: Log tenant object to check tin
             const fields = Array.isArray(data.field_list) ? data.field_list : [];
 
             if (!fields.length) {
@@ -170,11 +171,11 @@
                         <th>ΕΚΤΑΣΗ (Ha)</th>
                     </tr>
                 `;
-               agreement.fields.forEach((field, index) => {
+                agreement.fields.forEach((field, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${index + 1}</td>
-                        <td>${field.community}</td> 
+                        <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
                         <td>${field.other_cartographic_background}</td>
@@ -245,7 +246,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
+                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin !== undefined ? tenant.tin : 'Not Available'}, Δ.Ο.Υ Α Σερρών`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -263,7 +264,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτής\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
+                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτήσ\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -283,9 +284,9 @@
                                         new TableCell({ children: [new Paragraph("ΕΚΤΑΣΗ (Ha)")], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
-                                ...agreement.fields.map(field, index => new TableRow({
+                                ...agreement.fields.map((field, index) => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph(index + 1)] }), 
+                                        new TableCell({ children: [new Paragraph(index + 1)] }),
                                         new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
