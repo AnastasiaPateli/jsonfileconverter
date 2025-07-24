@@ -106,9 +106,12 @@
 
         function generateAgreements(data) {
             agreementsDiv.innerHTML = '';
-            const tenant = data.applicant_detail || {};
-            console.log('Tenant data:', tenant); // Debug: Log tenant object to check tin
             const fields = Array.isArray(data.field_list) ? data.field_list : [];
+            const tenant = {
+                ...data.applicant_detail || {},
+                tin: fields.length > 0 ? fields[0].tin || 'Not Available' : 'Not Available'
+            };
+            console.log('Tenant data:', tenant); // Debug: Log tenant object to check tin
 
             if (!fields.length) {
                 errorDiv.textContent = 'No fields found in the JSON data.';
@@ -264,7 +267,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτήσ\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
+                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτής\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
                                     size: 24,
                                     font: "Arial"
                                 })
