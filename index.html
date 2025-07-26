@@ -8,452 +8,123 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
+    <script>
+        // Fallback for docx.js
+        if (!window.docx) {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.min.js"><\/script>');
         }
-        
+        // Fallback for FileSaver.js
+        if (!window.saveAs) {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"><\/script>');
+        }
+        // Fallback for JSZip
+        if (!window.JSZip) {
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');
+        }
+    </script>
+    <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
+            font-family: Arial, sans-serif;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
         }
-        
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+        .upload-section, .agreements-section {
+            margin-bottom: 20px;
         }
-        
-        .header {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 2.5em;
-            font-weight: 300;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .upload-section {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border: 2px dashed #ddd;
-            transition: all 0.3s ease;
-        }
-        
-        .upload-section:hover {
-            border-color: #4CAF50;
-            background: #f0f8f0;
-        }
-        
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-            width: 100%;
-        }
-        
-        .file-input {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .file-input-button {
-            display: inline-block;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 500;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-            width: 100%;
-        }
-        
-        .file-input-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-        
-        .file-info {
-            margin-top: 15px;
+        button, input[type="file"] {
             padding: 10px;
-            background: #e8f5e8;
-            border-radius: 5px;
-            color: #2e7d32;
-            display: none;
+            margin: 10px 0;
+            cursor: pointer;
         }
-        
-        .stats-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-        
         .agreement {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
         }
-        
-        .agreement:hover {
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-        
-        .agreement h3 {
-            color: #4CAF50;
-            margin-top: 0;
-            font-size: 1.3em;
-            font-weight: 600;
-        }
-        
-        .agreement-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 0.9em;
-        }
-        
-        .agreement-table th {
-            background: #4CAF50;
-            color: white;
-            padding: 12px 8px;
-            text-align: left;
-            font-weight: 600;
-        }
-        
-        .agreement-table td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .agreement-table tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-        
-        .agreement-table tr:hover {
-            background: #f0f8f0;
-        }
-        
-        .download-btn {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
+        .download-btn, .download-all-btn {
+            background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
-            margin-right: 10px;
-        }
-        
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
-        }
-        
-        .download-all-btn {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-            margin: 20px 0;
-            width: 100%;
-        }
-        
-        .download-all-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-        }
-        
-        .download-all-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            border-left: 4px solid #f44336;
-            display: none;
-        }
-        
-        .success {
-            background: #e8f5e8;
-            color: #2e7d32;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            border-left: 4px solid #4CAF50;
-            display: none;
-        }
-        
-        .loading {
-            display: none;
+            padding: 8px 16px;
             text-align: center;
-            padding: 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
         }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4CAF50;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .instructions {
-            background: #e3f2fd;
-            border-left: 4px solid #2196F3;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        
-        .instructions h4 {
-            margin-top: 0;
-            color: #1976D2;
-        }
-        
-        .instructions ul {
-            margin-bottom: 0;
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .agreement-table {
-                font-size: 0.8em;
-            }
-            
-            .agreement-table th,
-            .agreement-table td {
-                padding: 8px 4px;
-            }
+        .error {
+            color: red;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏡 Tenancy Agreement Generator</h1>
-            <p>Generate professional Greek agricultural lease agreements from JSON data</p>
-        </div>
-        
-        <div class="content">
-            <div class="instructions">
-                <h4>📋 Instructions</h4>
-                <ul>
-                    <li>Upload a JSON file containing tenant and property information</li>
-                    <li>The system will automatically group properties by owner TIN</li>
-                    <li>Download individual agreements or all agreements as a ZIP file</li>
-                    <li>All documents are generated in Greek with proper legal formatting</li>
-                </ul>
-            </div>
-            
-            <div class="upload-section">
-                <div class="file-input-wrapper">
-                    <input type="file" id="jsonFile" class="file-input" accept=".json">
-                    <div class="file-input-button">
-                        📄 Choose JSON File
-                    </div>
-                </div>
-                <div id="fileInfo" class="file-info"></div>
-            </div>
-            
-            <div id="error" class="error"></div>
-            <div id="success" class="success"></div>
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Processing your file...</p>
-            </div>
-            
-            <div id="stats" class="stats-section" style="display: none;"></div>
-            
-            <button id="downloadAllBtn" class="download-all-btn" style="display: none;" disabled>
-                📦 Download All Agreements as ZIP
-            </button>
-            
-            <div id="agreements" class="agreements-section"></div>
-        </div>
+    <div class="upload-section">
+        <h2>Tenancy Agreement Generator</h2>
+        <input type="file" id="jsonFile" accept=".json">
+        <div id="error" class="error"></div>
     </div>
+    <div class="agreements-section" id="agreements"></div>
+    <button class="download-all-btn" id="downloadAllBtn" style="display: none;">Download All Agreements</button>
 
     <script>
         const jsonFileInput = document.getElementById('jsonFile');
         const agreementsDiv = document.getElementById('agreements');
         const errorDiv = document.getElementById('error');
-        const successDiv = document.getElementById('success');
-        const loadingDiv = document.getElementById('loading');
-        const fileInfoDiv = document.getElementById('fileInfo');
-        const statsDiv = document.getElementById('stats');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
-        
         let agreementBlobs = [];
-        let currentData = null;
 
         // Check if required libraries are loaded
         window.addEventListener('load', () => {
-            const missingLibs = [];
-            if (!window.docx) missingLibs.push('docx.js');
-            if (!window.saveAs) missingLibs.push('FileSaver.js');
-            if (!window.JSZip) missingLibs.push('JSZip');
-            
-            if (missingLibs.length > 0) {
-                showError(`Required libraries failed to load: ${missingLibs.join(', ')}. Please refresh the page.`);
+            if (!window.docx || !window.saveAs || !window.JSZip) {
+                errorDiv.textContent = 'Required libraries (docx.js, FileSaver.js, or JSZip) failed to load. Please try again later.';
                 console.error('Library Load Failure:', { docx: !!window.docx, saveAs: !!window.saveAs, JSZip: !!window.JSZip });
             }
         });
 
         jsonFileInput.addEventListener('change', handleFileUpload);
-        downloadAllBtn.addEventListener('click', downloadAllAgreements);
-
-        function showError(message) {
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            successDiv.style.display = 'none';
-        }
-
-        function showSuccess(message) {
-            successDiv.textContent = message;
-            successDiv.style.display = 'block';
-            errorDiv.style.display = 'none';
-        }
-
-        function hideMessages() {
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
-        }
-
-        function showLoading(show = true) {
-            loadingDiv.style.display = show ? 'block' : 'none';
-        }
 
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) {
-                hideMessages();
-                fileInfoDiv.style.display = 'none';
+                errorDiv.textContent = 'No file selected.';
+                console.warn('No file selected');
                 return;
             }
-
-            // Show file info
-            fileInfoDiv.innerHTML = `
-                <strong>📄 ${file.name}</strong><br>
-                Size: ${(file.size / 1024).toFixed(1)} KB<br>
-                Last modified: ${new Date(file.lastModified).toLocaleDateString()}
-            `;
-            fileInfoDiv.style.display = 'block';
-
-            showLoading(true);
-            hideMessages();
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    currentData = data;
                     generateAgreements(data);
-                    showSuccess(`✅ File processed successfully! Generated ${Object.keys(groupFieldsByTin(data)).length} agreements.`);
+                    errorDiv.textContent = '';
                 } catch (error) {
-                    showError('❌ Error parsing JSON file: ' + error.message);
+                    errorDiv.textContent = 'Error parsing JSON file: ' + error.message;
                     console.error('JSON Parse Error:', error);
-                } finally {
-                    showLoading(false);
                 }
             };
             reader.onerror = function() {
-                showError('❌ Error reading file.');
+                errorDiv.textContent = 'Error reading file.';
                 console.error('FileReader Error:', reader.error);
-                showLoading(false);
             };
             reader.readAsText(file);
         }
 
-        function groupFieldsByTin(data) {
+        function generateAgreements(data) {
+            agreementsDiv.innerHTML = '';
+            agreementBlobs = []; // Reset blobs
             const tenant = data.applicant_detail || {};
             const fields = Array.isArray(data.field_list) ? data.field_list : [];
 
             if (!fields.length) {
-                throw new Error('No fields found in the JSON data.');
+                errorDiv.textContent = 'No fields found in the JSON data.';
+                console.warn('No fields in JSON');
+                return;
             }
 
+            // Group fields by owner TIN
             const agreementsByTin = {};
 
             fields.forEach(field => {
@@ -487,93 +158,56 @@
                 });
             });
 
-            return agreementsByTin;
-        }
-
-        function generateStats(agreementsByTin) {
-            const totalAgreements = Object.keys(agreementsByTin).length;
-            const totalFields = Object.values(agreementsByTin).reduce((sum, agreement) => sum + agreement.fields.length, 0);
-            const totalArea = Object.values(agreementsByTin).reduce((sum, agreement) => {
-                return sum + agreement.fields.reduce((fieldSum, field) => fieldSum + parseFloat(field.area_ha || 0), 0);
-            }, 0);
-
-            statsDiv.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-number">${totalAgreements}</div>
-                    <div class="stat-label">Agreements</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${totalFields}</div>
-                    <div class="stat-label">Total Fields</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${totalArea.toFixed(2)}</div>
-                    <div class="stat-label">Total Area (Ha)</div>
-                </div>
-            `;
-            statsDiv.style.display = 'grid';
-        }
-
-        function generateAgreements(data) {
-            agreementsDiv.innerHTML = '';
-            agreementBlobs = [];
-            
-            const tenant = data.applicant_detail || {};
-            const agreementsByTin = groupFieldsByTin(data);
-
-            generateStats(agreementsByTin);
-
             // Generate agreements for each unique TIN
-            Object.values(agreementsByTin).forEach((agreement, index) => {
+            Object.values(agreementsByTin).forEach(agreement => {
                 const agreementDiv = document.createElement('div');
                 agreementDiv.className = 'agreement';
                 
                 const title = document.createElement('h3');
-                title.textContent = `Agreement ${index + 1}: ${agreement.owner.full_name} (TIN: ${agreement.owner.tin})`;
+                title.textContent = `Agreement for ${agreement.owner.full_name} (TIN: ${agreement.owner.tin})`;
                 agreementDiv.appendChild(title);
 
                 const table = document.createElement('table');
-                table.className = 'agreement-table';
+                table.border = '1';
+                table.style.width = '100%';
                 table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th>Α/Α</th>
-                            <th>ΚΟΙΝΟΤΗΤΑ</th>
-                            <th>ΤΟΠΟΘΕΣΙΑ</th>
-                            <th>Α.Τ.Α.Κ.</th>
-                            <th>ΑΡ.ΚΤΗΜ.ΤΕΜ.</th>
-                            <th>ΧΑΡΤΟΓΡΑΦΙΚΟ</th>
-                            <th>ΕΚΤΑΣΗ (Ha)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
+                    <tr>
+                        <th>Α/Α</th>
+                        <th>ΚΟΙΝΟΤΗΤΑ (κωδ.)</th>
+                        <th>ΤΟΠΟΘΕΣΙΑ</th>
+                        <th>Α.Τ.Α.Κ.</th>
+                        <th>ΑΡ.ΚΤΗΜ.ΤΕΜ.</th>
+                        <th>ΧΑΡΤΟΓΡΑΦΙΚΟ</th>
+                        <th>ΕΚΤΑΣΗ (Ha)</th>
+                        <th>ΕΝΑΡΞΗ ΜΙΣΘΩΣΗΣ</th>
+                        <th>ΛΗΞΗ ΜΙΣΘΩΣΗΣ</th>
+                    </tr>
                 `;
-                
-                const tbody = table.querySelector('tbody');
-                agreement.fields.forEach((field, fieldIndex) => {
+                agreement.fields.forEach((field, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${fieldIndex + 1}</td>
+                        <td>${index + 1}</td>
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
                         <td>${field.other_cartographic_background}</td>
                         <td>${field.cartographic_background}</td>
                         <td>${field.area_ha}</td>
+                        <td>${field.rental_start_date}</td>
+                        <td>${field.rental_end_date}</td>
                     `;
-                    tbody.appendChild(row);
+                    table.appendChild(row);
                 });
                 agreementDiv.appendChild(table);
 
                 const downloadBtn = document.createElement('button');
                 downloadBtn.className = 'download-btn';
-                downloadBtn.textContent = '📄 Download Agreement';
+                downloadBtn.textContent = 'Download Agreement';
                 downloadBtn.onclick = () => {
                     try {
-                        generateDocx(agreement, tenant, false);
+                        generateDocx(agreement, tenant, true);
                     } catch (error) {
-                        showError('❌ Error generating document: ' + error.message);
+                        errorDiv.textContent = 'Error generating document: ' + error.message;
                         console.error('Document Generation Error:', error);
                     }
                 };
@@ -582,9 +216,9 @@
                 agreementsDiv.appendChild(agreementDiv);
             });
 
-            // Enable download all button
-            downloadAllBtn.style.display = 'block';
-            downloadAllBtn.disabled = false;
+            if (Object.keys(agreementsByTin).length > 1) {
+                downloadAllBtn.style.display = 'block';
+            }
         }
 
         function generateDocx(agreement, tenant, storeBlob = false) {
@@ -594,7 +228,7 @@
 
             const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } = docx;
 
-            // Calculate the overall duration range
+            // Calculate the overall duration range if needed
             const startDates = agreement.fields.map(f => f.rental_start_date).filter(d => d !== '-' && !isNaN(new Date(d).getTime()));
             const endDates = agreement.fields.map(f => f.rental_end_date).filter(d => d !== '-' && !isNaN(new Date(d).getTime()));
             const earliestStart = startDates.length ? Math.min(...startDates.map(d => new Date(d).getTime())) : '-';
@@ -620,7 +254,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `Σήμερα την 26η Ιουλίου 2025 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
+                                    text: `Σήμερα την 26η Ιουλίου 2025 στις 21:20 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -673,7 +307,9 @@
                                         new TableCell({ children: [new Paragraph("Α.Τ.Α.Κ.")], width: { size: 20, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("ΑΡ.ΚΤΗΜ.ΤΕΜ.")], width: { size: 15, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("ΧΑΡΤΟΓΡΑΦΙΚΟ")], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΕΚΤΑΣΗ (Ha)")], width: { size: 10, type: WidthType.PERCENTAGE } })
+                                        new TableCell({ children: [new Paragraph("ΕΚΤΑΣΗ (Ha)")], width: { size: 10, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph("ΕΝΑΡΞΗ ΜΙΣΘΩΣΗΣ")], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph("ΛΗΞΗ ΜΙΣΘΩΣΗΣ")], width: { size: 15, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
                                 ...agreement.fields.map((field, index) => new TableRow({
@@ -684,7 +320,9 @@
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
                                         new TableCell({ children: [new Paragraph(field.other_cartographic_background)] }),
                                         new TableCell({ children: [new Paragraph(field.cartographic_background)] }),
-                                        new TableCell({ children: [new Paragraph(field.area_ha.toString())] })
+                                        new TableCell({ children: [new Paragraph(field.area_ha.toString())] }),
+                                        new TableCell({ children: [new Paragraph(field.rental_start_date)] }),
+                                        new TableCell({ children: [new Paragraph(field.rental_end_date)] })
                                     ]
                                 }))
                             ]
@@ -719,4 +357,168 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "4. ΧΡΗΣΗ. Ο μίσθιος αγρός θα χρησιμοποιηθεί για αποκλειστικά για αγροτική καλλιέργεια. Απαγορεύεται απόλυτα οποιαδήποτε μετατροπή της χρήσης ή του τρόπου εκμετάλλευσης του μισθίου, η ολική ή μερική υπομίσθωσή του, ή η με οποιοδήποτε τρόπο, με ή χωρίς α
+                                    text: "4. ΧΡΗΣΗ. Ο μίσθιος αγρός θα χρησιμοποιηθεί για αποκλειστικά για αγροτική καλλιέργεια. Απαγορεύεται απόλυτα οποιαδήποτε μετατροπή της χρήσης ή του τρόπου εκμετάλλευσης του μισθίου, η ολική ή μερική υπομίσθωσή του, ή η με οποιοδήποτε τρόπο, με ή χωρίς αντάλλαγμα παραχώρηση της χρήσης του μισθίου σε τρίτους καθώς και η πρόσληψη συνεταίρου, χωρίς την προηγούμενη έγγραφη συναίνεση του εκμισθωτή.",
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.",
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "ΟΙ ΣΥΜΒΑΛΛΟΜΕΝΟΙ",
+                                    bold: true,
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: "center"
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ                      ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ 
+                                            ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}                      Ο ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'}
+                                            με Α.Δ.Τ.:                                                   με Α.Δ.Τ.: ${tenant.identity_number || '-'}
+                                            Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ                                          Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ`,
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "ΘΕΩΡΗΘΗΚΕ ____________________",
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 35,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 35,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 35,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 35,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 35,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "Για το γνήσιο των υπογραφών",
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: "center"
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 26η Ιουλίου 2025 στις 21:20",
+                                    size: 24,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: "center"
+                        })
+                    ]
+                }]
+            });
+
+            return docx.Packer.toBlob(doc).then(blob => {
+                if (storeBlob) {
+                    agreementBlobs.push({ blob, filename: `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx` });
+                } else {
+                    saveAs(blob, `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx`);
+                }
+                console.log('Document generated successfully.');
+            }).catch(error => {
+                errorDiv.textContent = 'Error generating document: ' + error.message;
+                console.error('Document Generation Error:', error);
+            });
+        }
+
+        function downloadAllAgreements() {
+            if (!window.JSZip || agreementBlobs.length === 0) {
+                errorDiv.textContent = 'Unable to download all agreements. JSZip not loaded or no agreements generated.';
+                console.error('Download All Failure:', { JSZip: !!window.JSZip, agreementBlobsLength: agreementBlobs.length });
+                return;
+            }
+
+            const zip = new JSZip();
+            agreementBlobs.forEach((item, index) => {
+                zip.file(item.filename, item.blob);
+            });
+
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                saveAs(content, `All_Agreements_${new Date().toISOString().slice(0, 10)}.zip`);
+                console.log('All agreements downloaded as ZIP.');
+                agreementBlobs = []; // Clear blobs after download
+                downloadAllBtn.style.display = 'none';
+            }).catch(error => {
+                errorDiv.textContent = 'Error creating ZIP file: ' + error.message;
+                console.error('ZIP Generation Error:', error);
+            });
+        }
+
+        downloadAllBtn.addEventListener('click', downloadAllAgreements);
+    </script>
+</body>
+</html>
