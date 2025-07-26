@@ -7,7 +7,6 @@
     <!-- Load libraries with fallback CDN -->
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
         // Fallback for docx.js
         if (!window.docx) {
@@ -16,10 +15,6 @@
         // Fallback for FileSaver.js
         if (!window.saveAs) {
             document.write('<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"><\/script>');
-        }
-        // Fallback for JSZip
-        if (!window.JSZip) {
-            document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
         }
     </script>
     <style>
@@ -42,7 +37,7 @@
             padding: 15px;
             margin-bottom: 10px;
         }
-        .download-btn, .download-all-btn {
+        .download-btn {
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -58,10 +53,6 @@
             color: red;
             margin: 10px 0;
         }
-        .agreement-count {
-            margin: 10px 0;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -69,7 +60,6 @@
         <h2>Tenancy Agreement Generator</h2>
         <input type="file" id="jsonFile" accept=".json">
         <div id="error" class="error"></div>
-        <div id="downloadAllContainer"></div> <!-- Container for Download All button and agreement count -->
     </div>
     <div class="agreements-section" id="agreements"></div>
 
@@ -77,14 +67,12 @@
         const jsonFileInput = document.getElementById('jsonFile');
         const agreementsDiv = document.getElementById('agreements');
         const errorDiv = document.getElementById('error');
-        const downloadAllContainer = document.getElementById('downloadAllContainer');
-        let agreementBlobs = []; // Store blobs for all agreements
 
         // Check if required libraries are loaded
         window.addEventListener('load', () => {
-            if (!window.docx || !window.saveAs || !window.JSZip) {
-                errorDiv.textContent = 'Required libraries (docx.js, FileSaver.js, or JSZip) failed to load. Please try again later.';
-                console.error('Library Load Failure:', { docx: !!window.docx, saveAs: !!window.saveAs, JSZip: !!window.JSZip });
+            if (!window.docx || !window.saveAs) {
+                errorDiv.textContent = 'Required libraries (docx.js or FileSaver.js) failed to load. Please try again later.';
+                console.error('Library Load Failure:', { docx: !!window.docx, saveAs: !!window.saveAs });
             }
         });
 
@@ -102,7 +90,6 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    agreementBlobs = []; // Reset blobs on new upload
                     generateAgreements(data);
                     errorDiv.textContent = '';
                 } catch (error) {
@@ -119,12 +106,8 @@
 
         function generateAgreements(data) {
             agreementsDiv.innerHTML = '';
+            const tenant = data.applicant_detail || {};
             const fields = Array.isArray(data.field_list) ? data.field_list : [];
-            const tenant = {
-                ...data.applicant_detail || {},
-                tin: data.tin || (fields.length > 0 ? fields[0].tin || 'Not Available' : 'Not Available')
-            };
-            console.log('Tenant data:', tenant);
 
             if (!fields.length) {
                 errorDiv.textContent = 'No fields found in the JSON data.';
@@ -132,7 +115,7 @@
                 return;
             }
 
-            // Group fields by owner TIN, skipping if owner TIN matches tenant TIN
+            // Group fields by owner TIN
             const agreementsByTin = {};
 
             fields.forEach(field => {
@@ -141,11 +124,7 @@
                 const geospatialData = field.field_geospatial_data || {};
 
                 propertyList.forEach(property => {
-                    const tin = property.tin || 'Unknown';
-                    if (tin === tenant.tin) {
-                        console.log(`Skipping agreement for owner TIN ${tin} as it matches tenant TIN ${tenant.tin}`);
-                        return;
-                    }
+                    const tin = property.tin || 'unknown_tin_' + Math.random().toString(36).substr(2, 9);
                     if (!agreementsByTin[tin]) {
                         agreementsByTin[tin] = {
                             owner: {
@@ -158,12 +137,14 @@
                     }
                     agreementsByTin[tin].fields.push({
                         serial_number: geospatialData.serial_number || '-',
-                        community: geospatialData.community_code || 'Unknown',
+                        community: fieldInfo.location ? fieldInfo.location.split('-')[0] : 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
-                        area_ha: property.area_participation_atak || '0'
+                        area_ha: property.area_participation_atak || '0',
+                        rental_start_date: property.rental_start_date || '-',
+                        rental_end_date: property.rental_end_date || '-'
                     });
                 });
             });
@@ -220,34 +201,23 @@
                 agreementDiv.appendChild(downloadBtn);
 
                 agreementsDiv.appendChild(agreementDiv);
-
-                // Generate and store blob for this agreement
-                generateDocx(agreement, tenant, true);
             });
-
-            // Add or update Download All button and agreement count at the top
-            downloadAllContainer.innerHTML = '';
-            const totalAgreements = Object.keys(agreementsByTin).length;
-            if (totalAgreements > 0) {
-                const countDiv = document.createElement('div');
-                countDiv.className = 'agreement-count';
-                countDiv.textContent = `Total Agreements Generated: ${totalAgreements}`;
-                downloadAllContainer.appendChild(countDiv);
-
-                const downloadAllBtn = document.createElement('button');
-                downloadAllBtn.className = 'download-all-btn';
-                downloadAllBtn.textContent = 'Download All Agreements';
-                downloadAllBtn.onclick = downloadAllAgreements;
-                downloadAllContainer.appendChild(downloadAllBtn);
-            }
         }
 
-        function generateDocx(agreement, tenant, storeBlob = false) {
+        function generateDocx(agreement, tenant) {
             if (!window.docx || !window.saveAs) {
                 throw new Error('Required libraries (docx.js or FileSaver.js) are not loaded.');
             }
 
             const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } = docx;
+
+            // Calculate the overall duration range if needed
+            const startDates = agreement.fields.map(f => f.rental_start_date).filter(d => d !== '-' && !isNaN(new Date(d).getTime()));
+            const endDates = agreement.fields.map(f => f.rental_end_date).filter(d => d !== '-' && !isNaN(new Date(d).getTime()));
+            const earliestStart = startDates.length ? Math.min(...startDates.map(d => new Date(d).getTime())) : '-';
+            const latestEnd = endDates.length ? Math.max(...endDates.map(d => new Date(d).getTime())) : '-';
+            const formattedStart = earliestStart !== '-' ? new Date(earliestStart).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            const formattedEnd = latestEnd !== '-' ? new Date(latestEnd).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
 
             const doc = new Document({
                 sections: [{
@@ -267,7 +237,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `Σήμερα την 1η Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
+                                    text: `Σήμερα την 26η Ιουλίου 2025 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -285,7 +255,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin !== undefined ? tenant.tin : 'Not Available'}, Δ.Ο.Υ Α Σερρών`,
+                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -303,7 +273,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτή\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
+                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτής\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -315,17 +285,17 @@
                                 new TableRow({
                                     children: [
                                         new TableCell({ children: [new Paragraph("Α/Α")], width: { size: 5, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΚΟΙΝΟΤΗΤΑ (κωδ.)")], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph("ΚΟΙΝΟΤΗΤΑ")], width: { size: 15, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("ΤΟΠΟΘΕΣΙΑ")], width: { size: 20, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("Α.Τ.Α.Κ.")], width: { size: 20, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("ΑΡ.ΚΤΗΜ.ΤΕΜ.")], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΧΑΡΤΟΓΡΑΦΙΚΟ")], width: { size: 20, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph("ΧΑΡΤΟΓΡΑΦΙΚΟ")], width: { size: 15, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph("ΕΚΤΑΣΗ (Ha)")], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
                                 ...agreement.fields.map((field, index) => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph(index + 1)] }),
+                                        new TableCell({ children: [new Paragraph((index + 1).toString())] }),
                                         new TableCell({ children: [new Paragraph(field.community)] }),
                                         new TableCell({ children: [new Paragraph(field.location)] }),
                                         new TableCell({ children: [new Paragraph(field.atak)] }),
@@ -348,7 +318,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "2. ΔΙΑΡΚΕIΑ. Η διάρκεια της παρούσας μίσθωσης ορίζεται: Αρχίζει την 1η ΝΟΕΜΒΡΙΟΥ 2024 και λήγει την 31η ΟΚΤΩΒΡΙΟΥ 2032.",
+                                    text: `2. ΔΙΑΡΚΕΙΑ. Η διάρκεια της παρούσας μίσθωσης ορίζεται ως εξής: ${formattedStart !== '-' && formattedEnd !== '-' ? `Αρχίζει την ${formattedStart} και λήγει την ${formattedEnd}` : 'Κάθε αγρός μισθώνεται από την ημερομηνία έναρξης έως την ημερομηνία λήξης που αναγράφεται στον παραπάνω πίνακα.'}`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -375,7 +345,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλευεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλεια του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
+                                    text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -384,7 +354,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλόμενους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.",
+                                    text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.",
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -404,7 +374,10 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Ο ΕΚΜΙΣΘΩΤΗΣ ____________________  Ο ΜΙΣΘΩΤΗΣ ____________________",
+                                    text: " ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ                      ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ 
+                                            ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}                      Ο ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'}
+                                            με Α.Δ.Τ.:                                                   με Α.Δ.Τ.: ${applicant_detail.identity_number}
+                                            Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ                                          Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ                         ",
                                     size: 24,
                                     font: "Arial"
                                 })
