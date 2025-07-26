@@ -124,7 +124,7 @@
                 return;
             }
 
-            // Group fields by owner TIN
+            // Group fields by owner TIN, skip if owner is unknown
             const agreementsByTin = {};
 
             fields.forEach(field => {
@@ -134,11 +134,16 @@
 
                 propertyList.forEach(property => {
                     const tin = property.tin || 'unknown_tin_' + Math.random().toString(36).substr(2, 9);
+                    const fullName = property.full_name || 'Unknown Owner';
+                    // Skip if owner is unknown (no valid TIN or full name)
+                    if (tin.startsWith('unknown_tin_') || fullName === 'Unknown Owner') {
+                        return;
+                    }
                     if (!agreementsByTin[tin]) {
                         agreementsByTin[tin] = {
                             owner: {
                                 tin: property.tin || 'Unknown',
-                                full_name: property.full_name || 'Unknown Owner',
+                                full_name: fullName,
                                 doy: 'Α Σερρών'
                             },
                             fields: []
@@ -158,7 +163,7 @@
                 });
             });
 
-            // Generate agreements for each unique TIN
+            // Generate agreements for each unique owner TIN, even if tenant TIN matches
             Object.values(agreementsByTin).forEach(agreement => {
                 const agreementDiv = document.createElement('div');
                 agreementDiv.className = 'agreement';
@@ -254,7 +259,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `Σήμερα την 26η Ιουλίου 2025 στις 21:20 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
+                                    text: `Σήμερα την 26η Ιουλίου 2025 στις 21:31 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 24,
                                     font: "Arial"
                                 })
@@ -471,7 +476,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 26η Ιουλίου 2025 στις 21:20",
+                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 26η Ιουλίου 2025 στις 21:31",
                                     size: 24,
                                     font: "Arial"
                                 })
