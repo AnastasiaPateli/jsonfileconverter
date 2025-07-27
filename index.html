@@ -107,11 +107,13 @@
                 return;
             }
 
+            const tenantTin = file.name.split('.')[0]; // Extract TIN from filename (e.g., "136332321" from "136332321.json")
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    generateAgreements(data);
+                    generateAgreements(data, tenantTin);
                     errorDiv.textContent = '';
                 } catch (error) {
                     errorDiv.textContent = 'Error parsing JSON file: ' + error.message;
@@ -125,7 +127,7 @@
             reader.readAsText(file);
         }
 
-        function generateAgreements(data) {
+        function generateAgreements(data, tenantTin) {
             agreementsDiv.innerHTML = '';
             agreementBlobs = []; // Reset blobs
             const tenant = data.applicant_detail || {};
@@ -224,7 +226,7 @@
                 downloadBtn.textContent = 'Download Agreement';
                 downloadBtn.onclick = () => {
                     try {
-                        generateDocx(agreement, tenant, false); // Set storeBlob to false for direct download
+                        generateDocx(agreement, tenant, tenantTin, false); // Set storeBlob to false for direct download
                     } catch (error) {
                         errorDiv.textContent = 'Error generating document: ' + error.message;
                         console.error('Document Generation Error:', error);
@@ -233,7 +235,7 @@
                 agreementDiv.appendChild(downloadBtn);
 
                 // Generate blob for "Download All" functionality
-                generateDocx(agreement, tenant, true); // Store blob for ZIP
+                generateDocx(agreement, tenant, tenantTin, true); // Store blob for ZIP
                 agreementsDiv.appendChild(agreementDiv);
             });
 
@@ -242,7 +244,7 @@
             }
         }
 
-        function generateDocx(agreement, tenant, storeBlob = false) {
+        function generateDocx(agreement, tenant, tenantTin, storeBlob = false) {
             if (!window.docx || !window.saveAs) {
                 throw new Error('Required libraries (docx.js or FileSaver.js) are not loaded.');
             }
@@ -259,9 +261,6 @@
             // Handle invalid dates
             if (rentalStartDate === 'Invalid Date') rentalStartDate = '-';
             if (rentalEndDate === 'Invalid Date') rentalEndDate = '-';
-
-            // Use the applicant's TIN for the tenant
-            const tenantTin = tenant.tin || '-';
 
             const doc = new Document({
                 sections: [{
@@ -284,7 +283,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Σήμερα την1η Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό",
+                                    text: "Σήμερα την 27η Ιουλίου 2025 στις 23:28 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό",
                                     size: 22,
                                     font: "Arial"
                                 })
