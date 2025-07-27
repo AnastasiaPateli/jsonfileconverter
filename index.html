@@ -58,22 +58,35 @@
             color: red;
             margin: 10px 0;
         }
+        .download-all-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .agreement-counter {
+            margin-left: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
+    <div class="download-all-section">
+        <button class="download-all-btn" id="downloadAllBtn" style="display: none;">Download All Agreements</button>
+        <span class="agreement-counter" id="agreementCounter">Agreements: 0</span>
+    </div>
     <div class="upload-section">
         <h2>Tenancy Agreement Generator</h2>
         <input type="file" id="jsonFile" accept=".json">
         <div id="error" class="error"></div>
     </div>
     <div class="agreements-section" id="agreements"></div>
-    <button class="download-all-btn" id="downloadAllBtn" style="display: none;">Download All Agreements</button>
 
     <script>
         const jsonFileInput = document.getElementById('jsonFile');
         const agreementsDiv = document.getElementById('agreements');
         const errorDiv = document.getElementById('error');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const agreementCounter = document.getElementById('agreementCounter');
         let agreementBlobs = [];
 
         // Check if required libraries are loaded
@@ -161,7 +174,11 @@
                 });
             });
 
-            // Generate agreements for each unique owner TIN, even if tenant TIN matches
+            // Update agreement counter
+            const agreementCount = Object.keys(agreementsByTin).length;
+            agreementCounter.textContent = `Agreements: ${agreementCount}`;
+
+            // Generate agreements for each unique owner TIN
             Object.values(agreementsByTin).forEach(agreement => {
                 const agreementDiv = document.createElement('div');
                 agreementDiv.className = 'agreement';
@@ -204,7 +221,7 @@
                 downloadBtn.textContent = 'Download Agreement';
                 downloadBtn.onclick = () => {
                     try {
-                        generateDocx(agreement, tenant, true);
+                        generateDocx(agreement, tenant, false); // Set storeBlob to false for direct download
                     } catch (error) {
                         errorDiv.textContent = 'Error generating document: ' + error.message;
                         console.error('Document Generation Error:', error);
@@ -212,6 +229,8 @@
                 };
                 agreementDiv.appendChild(downloadBtn);
 
+                // Generate blob for "Download All" functionality
+                generateDocx(agreement, tenant, true); // Store blob for ZIP
                 agreementsDiv.appendChild(agreementDiv);
             });
 
@@ -225,7 +244,7 @@
                 throw new Error('Required libraries (docx.js or FileSaver.js) are not loaded.');
             }
 
-            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } = docx;
+            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } = docx;
 
             // Calculate the overall duration range if needed
             const startDates = agreement.fields.map(f => f.rental_start_date).filter(d => d !== '-' && !isNaN(new Date(d).getTime()));
@@ -247,9 +266,12 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: "center"
+                            alignment: AlignmentType.JUSTIFIED
                         }),
-                        new Paragraph({ children: [new TextRun({ text: "", size: 24 })] }),
+                        new Paragraph({ 
+                            children: [new TextRun({ text: "", size: 24 })],
+                            alignment: AlignmentType.JUSTIFIED 
+                        }),
                         new Paragraph({
                             children: [
                                 new TextRun({
@@ -257,7 +279,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -266,17 +289,18 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'},
-                                    οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
+                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -285,7 +309,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -294,31 +319,32 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Table({
                             width: { size: 100, type: WidthType.PERCENTAGE },
                             rows: [
                                 new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph("Α/Α")], width: { size: 5, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΚΟΙΝΟΤΗΤΑ")], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΤΟΠΟΘΕΣΙΑ")], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("Α.Τ.Α.Κ.")], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΑΡ.ΚΤΗΜ.ΤΕΜ.")], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΧΑΡΤΟΓΡΑΦΙΚΟ")], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph("ΕΚΤΑΣΗ (Ha)")], width: { size: 10, type: WidthType.PERCENTAGE } })
+                                        new TableCell({ children: [new Paragraph({ text: "Α/Α", alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ text: "ΚΟΙΝΟΤΗΤΑ", alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ text: "ΤΟΠΟΘΕΣΙΑ", alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ text: "Α.Τ.Α.Κ.", alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ text: "ΕΚΤΑΣΗ (Ha)", alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
                                 ...agreement.fields.map((field, index) => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph((index + 1).toString())] }),
-                                        new TableCell({ children: [new Paragraph(field.community)] }),
-                                        new TableCell({ children: [new Paragraph(field.location)] }),
-                                        new TableCell({ children: [new Paragraph(field.atak)] }),
-                                        new TableCell({ children: [new Paragraph(field.other_cartographic_background)] }),
-                                        new TableCell({ children: [new Paragraph(field.cartographic_background)] }),
-                                        new TableCell({ children: [new Paragraph(field.area_ha.toString())] })
+                                        new TableCell({ children: [new Paragraph({ text: (index + 1).toString(), alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ text: field.community, alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ text: field.location, alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ text: field.atak, alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ text: field.other_cartographic_background, alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ text: field.cartographic_background, alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ text: field.area_ha.toString(), alignment: AlignmentType.CENTER })] })
                                     ]
                                 }))
                             ]
@@ -330,7 +356,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -339,7 +366,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -348,7 +376,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -357,7 +386,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -366,7 +396,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -375,7 +406,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -384,7 +416,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -393,7 +426,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -404,7 +438,7 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: "center"
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -416,7 +450,8 @@
                                     size: 20,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -425,7 +460,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -434,7 +470,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -443,7 +480,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -452,7 +490,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -461,7 +500,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -470,7 +510,8 @@
                                     size: 22,
                                     font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -480,7 +521,7 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: "center"
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -490,22 +531,24 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: "center"
+                            alignment: AlignmentType.JUSTIFIED
                         })
                     ]
                 }]
             });
 
             return docx.Packer.toBlob(doc).then(blob => {
+                const filename = `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx`;
                 if (storeBlob) {
-                    agreementBlobs.push({ blob, filename: `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx` });
+                    agreementBlobs.push({ blob, filename });
                 } else {
-                    saveAs(blob, `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}.docx`);
+                    saveAs(blob, filename);
                 }
-                console.log('Document generated successfully.');
+                console.log('Document generated successfully:', filename);
             }).catch(error => {
                 errorDiv.textContent = 'Error generating document: ' + error.message;
                 console.error('Document Generation Error:', error);
+                throw error;
             });
         }
 
@@ -517,7 +560,7 @@
             }
 
             const zip = new JSZip();
-            agreementBlobs.forEach((item, index) => {
+            agreementBlobs.forEach((item) => {
                 zip.file(item.filename, item.blob);
             });
 
@@ -526,6 +569,7 @@
                 console.log('All agreements downloaded as ZIP.');
                 agreementBlobs = []; // Clear blobs after download
                 downloadAllBtn.style.display = 'none';
+                agreementCounter.textContent = 'Agreements: 0';
             }).catch(error => {
                 errorDiv.textContent = 'Error creating ZIP file: ' + error.message;
                 console.error('ZIP Generation Error:', error);
