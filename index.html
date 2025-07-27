@@ -250,8 +250,14 @@
 
             // Extract and format rental start and end dates from the first field (assuming consistency across fields)
             const firstField = agreement.fields[0];
-            const rentalStartDate = firstField.rental_start_date !== '-' ? new Date(firstField.rental_start_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
-            const rentalEndDate = firstField.rental_end_date !== '-' ? new Date(firstField.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            const rentalStartDate = firstField.rental_start_date !== '-' ? 
+                new Date(firstField.rental_start_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            const rentalEndDate = firstField.rental_end_date !== '-' ? 
+                new Date(firstField.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+
+            // Handle invalid dates
+            if (rentalStartDate === 'Invalid Date') rentalStartDate = '-';
+            if (rentalEndDate === 'Invalid Date') rentalEndDate = '-';
 
             const doc = new Document({
                 sections: [{
@@ -274,7 +280,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `Σήμερα την  1η Νοεμβριου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
+                                    text: `Σήμερα την 1 Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -294,7 +300,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
+                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -326,24 +332,24 @@
                             rows: [
                                 new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph({ text: "Α/Α", alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ text: "ΚΟΙΝΟΤΗΤΑ", alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ text: "ΤΟΠΟΘΕΣΙΑ", alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ text: "Α.Τ.Α.Κ.", alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ text: "ΕΚΤΑΣΗ (Ha)", alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α/Α", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΚΟΙΝΟΤΗΤΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΤΟΠΟΘΕΣΙΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΕΚΤΑΣΗ (Ha)", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
                                 ...agreement.fields.map((field, index) => new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph({ text: (index + 1).toString(), alignment: AlignmentType.CENTER })] }),
-                                        new TableCell({ children: [new Paragraph({ text: field.community, alignment: AlignmentType.CENTER })] }),
-                                        new TableCell({ children: [new Paragraph({ text: field.location, alignment: AlignmentType.CENTER })] }),
-                                        new TableCell({ children: [new Paragraph({ text: field.atak, alignment: AlignmentType.CENTER })] }),
-                                        new TableCell({ children: [new Paragraph({ text: field.other_cartographic_background, alignment: AlignmentType.CENTER })] }),
-                                        new TableCell({ children: [new Paragraph({ text: field.cartographic_background, alignment: AlignmentType.CENTER })] }),
-                                        new TableCell({ children: [new Paragraph({ text: field.area_ha.toString(), alignment: AlignmentType.CENTER })] })
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: (index + 1).toString(), font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.community, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.location, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.atak, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.other_cartographic_background, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.cartographic_background, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.area_ha.toString(), font: "Arial" })], alignment: AlignmentType.CENTER })] })
                                     ]
                                 }))
                             ]
@@ -391,7 +397,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
+                                    text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτή υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -439,12 +445,23 @@
                             ],
                             alignment: AlignmentType.JUSTIFIED
                         }),
+                         new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 22,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
+                        }),
                         new Paragraph({
                             children: [
                                 new TextRun({
                                     text: `ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ                      ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ 
-                                           ΕΚΜΙΣΘΩΤΗ ${agreement.owner.full_name}                      ΜΙΣΘΩΤΗ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name || '-'}
-                                           με Α.Δ.Τ.:                                                   με Α.Δ.Τ.: ${tenant.identity_number || '-'}
+                                            ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}                      ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''} 
+                                            με Α.Δ.Τ.:                                                   με Α.Δ.Τ.: ${tenant.identity_number || '-'}
+                                            Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ                                          Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ`,
                                     size: 20,
                                     font: "Arial"
                                 })
@@ -524,7 +541,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 26η Ιουλίου 2025",
+                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 1 Νοεμβρίου 2024",
                                     size: 20,
                                     font: "Arial"
                                 })
