@@ -246,7 +246,7 @@
                 throw new Error('Required libraries (docx.js or FileSaver.js) are not loaded.');
             }
 
-            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } = docx;
+            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = docx;
 
             // Extract and format rental start and end dates from the first field (assuming consistency across fields)
             const firstField = agreement.fields[0];
@@ -280,7 +280,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `Σήμερα την 1η Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
+                                    text: `Σήμερα την 27η Ιουλίου 2025 στις 19:58 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -320,7 +320,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτής\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
+                                    text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτή\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -445,40 +445,55 @@
                             ],
                             alignment: AlignmentType.JUSTIFIED
                         }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                                                                          ",
-                                    size: 22,
-                                    font: "Arial"
+                        new Table({
+                            width: { size: 100, type: WidthType.PERCENTAGE },
+                            borders: {
+                                top: { style: BorderStyle.NONE, size: 0 },
+                                bottom: { style: BorderStyle.NONE, size: 0 },
+                                left: { style: BorderStyle.NONE, size: 0 },
+                                right: { style: BorderStyle.NONE, size: 0 }
+                            },
+                            rows: [
+                                new TableRow({
+                                    children: [
+                                        new TableCell({
+                                            width: { size: 50, type: WidthType.PERCENTAGE },
+                                            children: [
+                                                new Paragraph({
+                                                    children: [
+                                                        new TextRun({
+                                                            text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n____________________`,
+                                                            size: 20,
+                                                            font: "Arial"
+                                                        })
+                                                    ],
+                                                    alignment: AlignmentType.CENTER
+                                                })
+                                            ]
+                                        }),
+                                        new TableCell({
+                                            width: { size: 50, type: WidthType.PERCENTAGE },
+                                            children: [
+                                                new Paragraph({
+                                                    children: [
+                                                        new TextRun({
+                                                            text: `ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n____________________`,
+                                                            size: 20,
+                                                            font: "Arial"
+                                                        })
+                                                    ],
+                                                    alignment: AlignmentType.CENTER
+                                                })
+                                            ]
+                                        })
+                                    ]
                                 })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
+                            ]
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}                                                 ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}`,
-                                    size: 20,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "____________________                                                            ____________________",
-                                    size: 20,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "ΘΕΩΡΗΘΗΚΕ ",
+                                    text: "ΘΕΩΡΗΘΗΚΕ ____________________",
                                     size: 22,
                                     font: "Arial"
                                 })
