@@ -280,7 +280,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `Σήμερα την 27η Ιουλίου 2025 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
+                                    text: `Σήμερα την 1η Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -445,44 +445,35 @@
                             ],
                             alignment: AlignmentType.JUSTIFIED
                         }),
-                        new Table({
-                            width: { size: 100, type: WidthType.PERCENTAGE },
-                            rows: [
-                                new TableRow({
-                                    children: [
-                                        new TableCell({
-                                            width: { size: 50, type: WidthType.PERCENTAGE },
-                                            children: [
-                                                new Paragraph({
-                                                    children: [
-                                                        new TextRun({
-                                                            text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\nμε Α.Δ.Τ.:\n`,
-                                                            size: 20,
-                                                            font: "Arial"
-                                                        })
-                                                    ],
-                                                    alignment: AlignmentType.CENTER
-                                                })
-                                            ]
-                                        }),
-                                        new TableCell({
-                                            width: { size: 50, type: WidthType.PERCENTAGE },
-                                            children: [
-                                                new Paragraph({
-                                                    children: [
-                                                        new TextRun({
-                                                            text: `ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\nμε Α.Δ.Τ.: ${tenant.identity_number || '-'}\n`,
-                                                            size: 20,
-                                                            font: "Arial"
-                                                        })
-                                                    ],
-                                                    alignment: AlignmentType.CENTER
-                                                })
-                                            ]
-                                        })
-                                    ]
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                                                                          ",
+                                    size: 22,
+                                    font: "Arial"
                                 })
-                            ]
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}                                                                 ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}`,
+                                    size: 20,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "____________________                                                                                  ____________________",
+                                    size: 20,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
