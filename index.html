@@ -254,7 +254,7 @@
                             children: [
                                 new TextRun({
                                     text: `Σήμερα την  1η Νοεμβριου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
-                                    size: 18,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -263,7 +263,7 @@
                             children: [
                                 new TextRun({
                                     text: `αφενός ο/η ${agreement.owner.full_name}, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`,
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -271,8 +271,9 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'}, οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
-                                    size: 15,
+                                    text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} του ${tenant.father_name || '-'}, επαγγέλματος αγρότης, κάτοικος ${tenant.post_code || '-'},
+                                    οδός ${tenant.street || '-'}, αρ. ${tenant.street_number || '-'}, Α.Φ.Μ ${tenant.tin || '-'}, Δ.Ο.Υ Α Σερρών`,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -281,7 +282,7 @@
                             children: [
                                 new TextRun({
                                     text: "συμφώνησαν από κοινού και αποδέχτηκαν τα εξής:",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -290,7 +291,7 @@
                             children: [
                                 new TextRun({
                                     text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτής\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -326,7 +327,7 @@
                             children: [
                                 new TextRun({
                                     text: "Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -335,7 +336,7 @@
                             children: [
                                 new TextRun({
                                     text: `2. ΔΙΑΡΚΕΙΑ. Η διάρκεια της παρούσας μίσθωσης ορίζεται ως εξής: ${formattedStart !== '-' && formattedEnd !== '-' ? `Αρχίζει την ${formattedStart} και λήγει την ${formattedEnd}` : 'Κάθε αγρός μισθώνεται από την ημερομηνία έναρξης έως την ημερομηνία λήξης που αναγράφεται στον παραπάνω πίνακα.'}`,
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -344,7 +345,7 @@
                             children: [
                                 new TextRun({
                                     text: "3. ΜΙΣΘΩΜΑ. Το ετήσιο μίσθωμα ορίζεται σε ευρώ - /ΣΤΡ",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -353,7 +354,7 @@
                             children: [
                                 new TextRun({
                                     text: "4. ΧΡΗΣΗ. Ο μίσθιος αγρός θα χρησιμοποιηθεί για αποκλειστικά για αγροτική καλλιέργεια. Απαγορεύεται απόλυτα οποιαδήποτε μετατροπή της χρήσης ή του τρόπου εκμετάλλευσης του μισθίου, η ολική ή μερική υπομίσθωσή του, ή η με οποιοδήποτε τρόπο, με ή χωρίς αντάλλαγμα παραχώρηση της χρήσης του μισθίου σε τρίτους καθώς και η πρόσληψη συνεταίρου, χωρίς την προηγούμενη έγγραφη συναίνεση του εκμισθωτή.",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -362,7 +363,7 @@
                             children: [
                                 new TextRun({
                                     text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτής υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -371,7 +372,7 @@
                             children: [
                                 new TextRun({
                                     text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -380,7 +381,16 @@
                             children: [
                                 new TextRun({
                                     text: "                                   ",
-                                    size: 15,
+                                    size: 22,
+                                    font: "Arial"
+                                })
+                            ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -390,7 +400,7 @@
                                 new TextRun({
                                     text: "ΟΙ ΣΥΜΒΑΛΛΟΜΕΝΟΙ",
                                     bold: true,
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ],
@@ -403,7 +413,7 @@
                                             ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}                      Ο ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'}
                                             με Α.Δ.Τ.:                                                   με Α.Δ.Τ.: ${tenant.identity_number || '-'}
                                             Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ                                          Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ`,
-                                    size: 15,
+                                    size: 20,
                                     font: "Arial"
                                 })
                             ]
@@ -412,7 +422,7 @@
                             children: [
                                 new TextRun({
                                     text: "ΘΕΩΡΗΘΗΚΕ ____________________",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -421,7 +431,7 @@
                             children: [
                                 new TextRun({
                                     text: "                                   ",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -430,7 +440,7 @@
                             children: [
                                 new TextRun({
                                     text: "                                   ",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -439,7 +449,7 @@
                             children: [
                                 new TextRun({
                                     text: "                                   ",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -448,7 +458,7 @@
                             children: [
                                 new TextRun({
                                     text: "                                   ",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -457,7 +467,7 @@
                             children: [
                                 new TextRun({
                                     text: "                                   ",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ]
@@ -466,7 +476,7 @@
                             children: [
                                 new TextRun({
                                     text: "Για το γνήσιο των υπογραφών",
-                                    size: 15,
+                                    size: 22,
                                     font: "Arial"
                                 })
                             ],
@@ -476,7 +486,7 @@
                             children: [
                                 new TextRun({
                                     text: "ΗΜΕΡΟΜΗΝΙΑ: 26η Ιουλίου 2025",
-                                    size: 15,
+                                    size: 20,
                                     font: "Arial"
                                 })
                             ],
