@@ -280,7 +280,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `Σήμερα την 27η Ιουλίου 2025 στις 19:58 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
+                                    text: `Σήμερα 1η Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -462,7 +462,8 @@
                                                 new Paragraph({
                                                     children: [
                                                         new TextRun({
-                                                            text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n____________________`,
+                                                            text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n____________________
+                                                            με Α.Δ.Τ.:________________`,
                                                             size: 20,
                                                             font: "Arial"
                                                         })
@@ -477,7 +478,7 @@
                                                 new Paragraph({
                                                     children: [
                                                         new TextRun({
-                                                            text: `ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n____________________`,
+                                                            text: `ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n____________________με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
                                                             size: 20,
                                                             font: "Arial"
                                                         })
@@ -489,6 +490,47 @@
                                     ]
                                 })
                             ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 22,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "ΟΙ ΣΥΜΒΑΛΛΟΜΕΝΟΙ",
+                                    bold: true,
+                                    size: 22,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 22,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "                                   ",
+                                    size: 22,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -563,7 +605,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 27η Ιουλίου 2025",
+                                    text: "ΗΜΕΡΟΜΗΝΙΑ: 1η Νοεμβρίου 2024",
                                     size: 20,
                                     font: "Arial"
                                 })
