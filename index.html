@@ -443,9 +443,8 @@
                             children: [
                                 new TextRun({
                                     text: `ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ                      ΒΕΒΑΙΩΝΕΤΑΙ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ ΤΟΥ 
-                                            ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}                      Ο ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'}
-                                            με Α.Δ.Τ.:                                                   με Α.Δ.Τ.: ${tenant.identity_number || '-'}
-                                            Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ                                          Ο ΥΠΑΛΛΗΛΟΣ ΤΟΥ ΚΕΠ`,
+                                           ΕΚΜΙΣΘΩΤΗ ${agreement.owner.full_name}                      ΜΙΣΘΩΤΗ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name || '-'}
+                                           με Α.Δ.Τ.:                                                   με Α.Δ.Τ.: ${tenant.identity_number || '-'}
                                     size: 20,
                                     font: "Arial"
                                 })
