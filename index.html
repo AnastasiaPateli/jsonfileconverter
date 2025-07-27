@@ -154,6 +154,11 @@
                     if (tin.startsWith('unknown_tin_') || fullName === 'Unknown Owner') {
                         return;
                     }
+                    // Skip if tenant TIN matches owner TIN
+                    if (tin === tenantTin) {
+                        console.log(`Skipping agreement for TIN ${tin} as it matches tenant TIN`);
+                        return;
+                    }
                     if (!agreementsByTin[tin]) {
                         agreementsByTin[tin] = {
                             owner: {
@@ -283,7 +288,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Σήμερα την 27η Ιουλίου 2025 στις 23:28 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό",
+                                    text: "Σήμερα την 1η Νοεμβρίου 2024 στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό",
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -405,7 +410,7 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType SEXP)
                         }),
                         new Paragraph({
                             children: [
