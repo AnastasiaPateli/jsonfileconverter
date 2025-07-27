@@ -462,7 +462,7 @@
                                                 new Paragraph({
                                                     children: [
                                                         new TextRun({
-                                                            text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n____________________
+                                                            text: `ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n
                                                             με Α.Δ.Τ.:________________`,
                                                             size: 20,
                                                             font: "Arial"
@@ -478,7 +478,7 @@
                                                 new Paragraph({
                                                     children: [
                                                         new TextRun({
-                                                            text: `ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n____________________με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
+                                                            text: `ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
                                                             size: 20,
                                                             font: "Arial"
                                                         })
