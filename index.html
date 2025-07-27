@@ -169,7 +169,9 @@
                         atak: property.atak || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
-                        area_ha: property.area_participation_atak || '0'
+                        area_ha: property.area_participation_atak || '0',
+                        rental_start_date: property.rental_start_date || '-',
+                        rental_end_date: property.rental_end_date || '-'
                     });
                 });
             });
@@ -246,13 +248,10 @@
 
             const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } = docx;
 
-            // Calculate the overall duration range if needed
-            const startDates = agreement.fields.map(f => f.rental_start_date).filter(d => d !== '-' && !isNaN(new Date(d).getTime()));
-            const endDates = agreement.fields.map(f => f.rental_end_date).filter(d => d !== '-' && !isNaN(new Date(d).getTime()));
-            const earliestStart = startDates.length ? Math.min(...startDates.map(d => new Date(d).getTime())) : '-';
-            const latestEnd = endDates.length ? Math.max(...endDates.map(d => new Date(d).getTime())) : '-';
-            const formattedStart = earliestStart !== '-' ? new Date(earliestStart).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
-            const formattedEnd = latestEnd !== '-' ? new Date(latestEnd).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            // Extract and format rental start and end dates from the first field (assuming consistency across fields)
+            const firstField = agreement.fields[0];
+            const rentalStartDate = firstField.rental_start_date !== '-' ? new Date(firstField.rental_start_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            const rentalEndDate = firstField.rental_end_date !== '-' ? new Date(firstField.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
 
             const doc = new Document({
                 sections: [{
@@ -362,7 +361,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `2. ΔΙΑΡΚΕΙΑ. Η διάρκεια της παρούσας μίσθωσης ορίζεται ως εξής: ${formattedStart !== '-' && formattedEnd !== '-' ? `Αρχίζει την ${formattedStart} και λήγει την ${formattedEnd}` : 'Κάθε αγρός μισθώνεται από την ημερομηνία έναρξης έως την ημερομηνία λήξης που αναγράφεται στον παραπάνω πίνακα.'}`,
+                                    text: `2. ΔΙΑΡΚΕΙΑ. Η διάρκεια της παρούσας μίσθωσης ορίζεται: Αρχίζει την ${rentalStartDate} και λήγει την ${rentalEndDate}.`,
                                     size: 22,
                                     font: "Arial"
                                 })
