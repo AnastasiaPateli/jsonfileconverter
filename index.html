@@ -171,7 +171,7 @@
                     }
                     agreementsByTin[tin].fields.push({
                         serial_number: geospatialData.serial_number || '-',
-                        community: fieldInfo.location ? fieldInfo.location.split('-')[0] : 'Unknown',
+                        community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
