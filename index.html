@@ -19,7 +19,7 @@
         }
         // Fallback for JSZip
         if (!window.JSZip) {
-            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');
+            document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/jszip.min.js"><\/script>');
         }
     </script>
     <style>
@@ -107,12 +107,17 @@
                 return;
             }
 
-            const tenantTin = file.name.split('.')[0]; // Extract TIN from filename (e.g., "065319740" from "065319740.json")
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
+                    const tenantTin = data.tin || '';
+                    if (!tenantTin) {
+                        errorDiv.textContent = 'No TIN found in JSON data.';
+                        console.warn('No TIN found in JSON');
+                        return;
+                    }
+                    console.log('Tenant TIN:', tenantTin);
                     generateAgreements(data, tenantTin);
                     errorDiv.textContent = '';
                 } catch (error) {
@@ -150,7 +155,7 @@
                 propertyList.forEach(property => {
                     const tin = property.tin || 'unknown_tin_' + Math.random().toString(36).substr(2, 9);
                     const fullName = property.full_name || 'Unknown Owner';
-                    // Skip if owner is unknown (no valid TIN or full name)
+                    // Skip if owner is unknown
                     if (tin.startsWith('unknown_tin_') || fullName === 'Unknown Owner') {
                         console.log(`Skipping field due to unknown owner: TIN=${tin}, Name=${fullName}`);
                         return;
@@ -189,6 +194,8 @@
                 });
             });
 
+            console.log('Agreements by TIN and Dates:', agreementsByTinAndDates);
+
             // Check if any valid agreements exist
             if (Object.keys(agreementsByTinAndDates).length === 0) {
                 errorDiv.textContent = 'No valid agreements generated. All fields may belong to the tenant or have invalid data.';
@@ -201,14 +208,15 @@
             // Update agreement counter
             const agreementCount = Object.keys(agreementsByTinAndDates).length;
             agreementCounter.textContent = `Agreements: ${agreementCount}`;
+            downloadAllBtn.style.display = agreementCount > 1 ? 'block' : 'none';
 
             // Generate agreements for each unique owner TIN and rental dates combination
-            Object.values(agreementsByTinAndDates).forEach(agreement => {
+            Object.values(agreementsByTinAndDates).forEach((agreement, index) => {
                 const agreementDiv = document.createElement('div');
                 agreementDiv.className = 'agreement';
                 
                 const title = document.createElement('h3');
-                title.textContent = `Agreement for ${agreement.owner.full_name} (TIN: ${agreement.owner.tin}, ${agreement.rental_start_date} - ${agreement.rental_end_date})`;
+                title.textContent = `Agreement ${index + 1} for ${agreement.owner.full_name} (TIN: ${agreement.owner.tin}, ${agreement.rental_start_date} - ${agreement.rental_end_date})`;
                 agreementDiv.appendChild(title);
 
                 const table = document.createElement('table');
@@ -225,10 +233,10 @@
                         <th>ΕΚΤΑΣΗ (Ha)</th>
                     </tr>
                 `;
-                agreement.fields.forEach((field, index) => {
+                agreement.fields.forEach((field, fieldIndex) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${index + 1}</td>
+                        <td>${fieldIndex + 1}</td>
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
@@ -254,15 +262,15 @@
                 agreementDiv.appendChild(downloadBtn);
 
                 // Generate blob for "Download All" functionality
-                generateDocx(agreement, tenant, tenantTin, true);
+                try {
+                    generateDocx(agreement, tenant, tenantTin, true);
+                } catch (error) {
+                    console.error('Error generating blob for agreement:', error);
+                    errorDiv.textContent = 'Error preparing agreement for download all: ' + error.message;
+                }
+
                 agreementsDiv.appendChild(agreementDiv);
             });
-
-            if (Object.keys(agreementsByTinAndDates).length > 1) {
-                downloadAllBtn.style.display = 'block';
-            } else {
-                downloadAllBtn.style.display = 'none';
-            }
         }
 
         function generateDocx(agreement, tenant, tenantTin, storeBlob = false) {
@@ -272,15 +280,10 @@
 
             const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = docx;
 
-            // Use the rental dates from the agreement object
             const rentalStartDate = agreement.rental_start_date !== '-' ? 
                 new Date(agreement.rental_start_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
             const rentalEndDate = agreement.rental_end_date !== '-' ? 
                 new Date(agreement.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
-
-            // Handle invalid dates
-            if (rentalStartDate === 'Invalid Date') rentalStartDate = '-';
-            if (rentalEndDate === 'Invalid Date') rentalEndDate = '-';
 
             const doc = new Document({
                 sections: [{
@@ -380,7 +383,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:",
+                                    text: `2. ΧΡΟΝΟΣ ΜΙΣΘΩΣΗΣ. Η διάρκεια της μίσθωσης ορίζεται από ${rentalStartDate} μέχρι ${rentalEndDate}.`,
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -390,7 +393,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `2. ΔΙΑΡΚΕΙΑ. Η διάρκεια της παρούσας μίσθωσης ορίζεται: Αρχίζει την ${rentalStartDate} και λήγει την ${rentalEndDate}.`,
+                                    text: "3. ΜΙΣΘΩΜΑ. Το μίσθωμα ορίζεται σε 0 ευρώ, καθόσον πρόκειται για δωρεάν παραχώρηση χρήσης, όπως προβλέπεται από το άρθρο 10 παρ. 3 του Ν. 4067/2012.",
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -400,17 +403,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "3. ΜΙΣΘΩΜΑ. Το ετήσιο μίσθωμα ορίζεται σε ευρώ - /ΣΤΡ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "4. ΧΡΗΣΗ. Ο μίσθιος αγρός θα χρησιμοποιηθεί για αποκλειστικά για αγροτική καλλιέργεια. Απαγορεύεται απόλυτα οποιαδήποτε μετατροπή της χρήσης ή του τρόπου εκμετάλλευσης του μισθίου, η ολική ή μερική υπομίσθωσή του, ή η με οποιοδήποτε τρόπο, με ή χωρίς αντάλλαγμα παραχώρηση της χρήσης του μισθίου σε τρίτους καθώς και η πρόσληψη συνεταίρου, χωρίς την προηγούμενη έγγραφη συναίνεση του εκμισθωτή.",
+                                    text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ. Η εκμίσθωση γίνεται για την καλλιέργεια των παραπάνω αγρών, αποκλειστικά από το μισθωτή, με σκοπό την εκτέλεση των γεωργικών του δραστηριοτήτων, όπως προβλέπονται από την κείμενη νομοθεσία.",
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -620,7 +613,6 @@
                 }
                 console.log('Document generated successfully:', filename);
             }).catch(error => {
-                errorDiv.textContent = 'Error generating document: ' + error.message;
                 console.error('Document Generation Error:', error);
                 throw error;
             });
