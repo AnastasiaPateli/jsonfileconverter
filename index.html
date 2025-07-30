@@ -152,11 +152,12 @@
                     const fullName = property.full_name || 'Unknown Owner';
                     // Skip if owner is unknown (no valid TIN or full name)
                     if (tin.startsWith('unknown_tin_') || fullName === 'Unknown Owner') {
+                        console.log(`Skipping field due to unknown owner: TIN=${tin}, Name=${fullName}`);
                         return;
                     }
                     // Skip if tenant TIN matches owner TIN
                     if (tin === tenantTin) {
-                        console.log(`Skipping agreement for TIN ${tin} as it matches tenant TIN`);
+                        console.log(`Skipping field for TIN ${tin} as it matches tenant TIN ${tenantTin}`);
                         return;
                     }
                     // Create a unique key based on TIN, rental_start_date, and rental_end_date
@@ -187,6 +188,15 @@
                     });
                 });
             });
+
+            // Check if any valid agreements exist
+            if (Object.keys(agreementsByTinAndDates).length === 0) {
+                errorDiv.textContent = 'No valid agreements generated. All fields may belong to the tenant or have invalid data.';
+                console.warn('No valid agreements generated');
+                downloadAllBtn.style.display = 'none';
+                agreementCounter.textContent = 'Agreements: 0';
+                return;
+            }
 
             // Update agreement counter
             const agreementCount = Object.keys(agreementsByTinAndDates).length;
@@ -250,6 +260,8 @@
 
             if (Object.keys(agreementsByTinAndDates).length > 1) {
                 downloadAllBtn.style.display = 'block';
+            } else {
+                downloadAllBtn.style.display = 'none';
             }
         }
 
