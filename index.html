@@ -285,6 +285,14 @@
             const rentalEndDate = agreement.rental_end_date !== '-' ? 
                 new Date(agreement.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
 
+            // Handle invalid dates
+            if (rentalStartDate === 'Invalid Date') {
+                throw new Error('Invalid rental start date in agreement data.');
+            }
+            if (rentalEndDate === 'Invalid Date') {
+                throw new Error('Invalid rental end date in agreement data.');
+            }
+
             const doc = new Document({
                 sections: [{
                     children: [
@@ -306,7 +314,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "Σήμερα την ${rentalStartDate} στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό",
+                                    text: `Σήμερα την ${rentalStartDate} στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`,
                                     size: 22,
                                     font: "Arial"
                                 })
@@ -379,6 +387,16 @@
                                     ]
                                 }))
                             ]
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:",
+                                    size: 22,
+                                    font: "Arial"
+                                })
+                            ],
+                            alignment: AlignmentType.JUSTIFIED
                         }),
                         new Paragraph({
                             children: [
@@ -480,7 +498,7 @@
                                                         new TextRun({
                                                             text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
                                                             ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n
-                                                                με Α.Δ.Τ.:________________`,
+                                                            με Α.Δ.Τ.:________________`,
                                                             size: 20,
                                                             font: "Arial"
                                                         })
@@ -497,7 +515,7 @@
                                                         new TextRun({
                                                             text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
                                                             ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n 
-                                                                με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
+                                                            με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
                                                             size: 20,
                                                             font: "Arial"
                                                         })
@@ -593,7 +611,7 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "ΗΜΕΡΟΜΗΝΙΑ: ${rentalStartDate}",
+                                    text: `ΗΜΕΡΟΜΗΝΙΑ: ${rentalStartDate}`,
                                     size: 20,
                                     font: "Arial"
                                 })
