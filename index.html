@@ -312,6 +312,8 @@
                 throw new Error('Invalid rental end date in agreement data.');
             }
 
+            const filename = `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}_${agreement.rental_start_date || 'no_date'}.${format}`;
+
             if (format === 'docx') {
                 const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = docx;
 
@@ -645,7 +647,6 @@
                 });
 
                 return docx.Packer.toBlob(doc).then(blob => {
-                    const filename = `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}_${agreement.rental_start_date || 'no_date'}.docx`;
                     if (storeBlob) {
                         agreementBlobs.push({ blob, filename });
                     } else {
@@ -733,21 +734,28 @@
                     defaultStyle: { font: 'Arial' }
                 };
 
-                const filename = `Agreement_${agreement.owner.tin}_${agreement.owner.full_name}_${agreement.rental_start_date || 'no_date'}.pdf`;
-                if (storeBlob) {
-                    return new Promise((resolve, reject) => {
-                        pdfMake.createPdf(docDefinition).getBlob(blob => {
-                            agreementBlobs.push({ blob, filename });
-                            console.log('PDF Document generated successfully:', filename);
-                            resolve();
+                try {
+                    if (storeBlob) {
+                        return new Promise((resolve, reject) => {
+                            pdfMake.createPdf(docDefinition).getBlob(blob => {
+                                if (!blob) {
+                                    throw new Error('Failed to generate PDF blob.');
+                                }
+                                agreementBlobs.push({ blob, filename });
+                                console.log('PDF Document generated successfully for blob:', filename);
+                                resolve();
+                            }, error => {
+                                console.error('PDF Blob Generation Error:', error);
+                                reject(error);
+                            });
                         });
-                    }).catch(error => {
-                        console.error('PDF Document Generation Error:', error);
-                        throw error;
-                    });
-                } else {
-                    pdfMake.createPdf(docDefinition).download(filename);
-                    console.log('PDF Document downloaded:', filename);
+                    } else {
+                        pdfMake.createPdf(docDefinition).download(filename);
+                        console.log('PDF Document download initiated:', filename);
+                    }
+                } catch (error) {
+                    console.error('PDF Document Generation Error:', error);
+                    throw error;
                 }
             }
         }
