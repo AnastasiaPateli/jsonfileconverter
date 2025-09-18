@@ -98,6 +98,8 @@
         const agreementCounter = document.getElementById('agreementCounter');
         let agreementBlobs = [];
         let allAgreements = [];
+        let globalTenant = {};
+        let globalTenantTin = '';
 
         // Check if required libraries are loaded
         window.addEventListener('load', () => {
@@ -123,14 +125,15 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    const tenantTin = data.tin || '';
-                    if (!tenantTin) {
+                    globalTenantTin = data.tin || '';
+                    globalTenant = data.applicant_detail || {};
+                    if (!globalTenantTin) {
                         errorDiv.textContent = 'No TIN found in JSON data.';
                         console.warn('No TIN found in JSON');
                         return;
                     }
-                    console.log('Tenant TIN:', tenantTin);
-                    generateAgreements(data, tenantTin);
+                    console.log('Tenant TIN:', globalTenantTin);
+                    generateAgreements(data, globalTenantTin);
                     errorDiv.textContent = '';
                 } catch (error) {
                     errorDiv.textContent = 'Error parsing JSON file: ' + error.message;
@@ -271,7 +274,7 @@
                 downloadDocxBtn.textContent = 'Download DOCX';
                 downloadDocxBtn.onclick = () => {
                     try {
-                        generateDocx(agreement, tenant, tenantTin, false, 'docx');
+                        generateDocx(agreement, globalTenant, tenantTin, false, 'docx');
                     } catch (error) {
                         errorDiv.textContent = 'Error generating DOCX document: ' + error.message;
                         console.error('DOCX Document Generation Error:', error);
@@ -287,7 +290,7 @@
                         if (!window.pdfMake) {
                             throw new Error('pdfMake library is not loaded.');
                         }
-                        generateDocx(agreement, tenant, tenantTin, false, 'pdf');
+                        generateDocx(agreement, globalTenant, tenantTin, false, 'pdf');
                     } catch (error) {
                         errorDiv.textContent = 'Error generating PDF document: ' + error.message;
                         console.error('PDF Document Generation Error:', error);
@@ -297,8 +300,8 @@
 
                 // Generate blobs for "Download All" functionality
                 try {
-                    generateDocx(agreement, tenant, tenantTin, true, 'docx');
-                    generateDocx(agreement, tenant, tenantTin, true, 'pdf');
+                    generateDocx(agreement, globalTenant, tenantTin, true, 'docx');
+                    generateDocx(agreement, globalTenant, tenantTin, true, 'pdf');
                 } catch (error) {
                     console.error('Error generating blobs for agreement:', error);
                     errorDiv.textContent = 'Error preparing agreement for download all: ' + error.message;
@@ -709,7 +712,7 @@
                         { text: "Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:", style: 'body' },
                         { text: `2. ΧΡΟΝΟΣ ΜΙΣΘΩΣΗΣ. Η διάρκεια της μίσθωσης ορίζεται από ${rentalStartDate} μέχρι ${rentalEndDate}.`, style: 'body' },
                         { text: "3. ΜΙΣΘΩΜΑ. Το μίσθωμα ορίζεται σε 0 ευρώ, καθόσον πρόκειται για δωρεάν παραχώρηση χρήσης, όπως προβλέπεται από το άρθρο 10 παρ. 3 του Ν. 4067/2012.", style: 'body' },
-                        { text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ. Η εκμίσθωση γίνεται για την καλλιέργεια των παραπάνω αγρούς, αποκλειστικά από το μισθωτή, με σκοπό την εκτέλεση των γεωργικών του δραστηριοτήτων, όπως προβλέπονται από την κείμενη νομοθεσία.", style: 'body' },
+                        { text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ. Η εκμίσθωση γίνεται για την καλλιέργεια των παραπάνω αγρών, αποκλειστικά από το μισθωτή, με σκοπό την εκτέλεση των γεωργικών του δραστηριοτήτων, όπως προβλέπονται από την κείμενη νομοθεσία.", style: 'body' },
                         { text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτή υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.", style: 'body' },
                         { text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.", style: 'body' },
                         { text: "", margin: [0, 10] },
@@ -778,7 +781,7 @@
             }
         }
 
-        function downloadAllAsSinglePdf(tenant) {
+        function downloadAllAsSinglePdf(tenant, tenantTin) {
             if (!window.pdfMake) {
                 errorDiv.textContent = 'pdfMake library is not loaded.';
                 console.error('pdfMake not loaded for single PDF download');
@@ -822,7 +825,7 @@
                     { text: "", margin: [0, 10] },
                     { text: `Σήμερα την ${rentalStartDate} στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`, style: 'body' },
                     { text: `αφενός ο/η ${agreement.owner.full_name}, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`, style: 'body' },
-                    { text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}, επαγγέλματος αγρότης, κάτοικος 62200, οδός -, αρ. -, Α.Φ.Μ ${tenant.tin || 'Unknown'}, Δ.Ο.Υ Α Σερρών`, style: 'body' },
+                    { text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}, επαγγέλματος αγρότης, κάτοικος 62200, οδός -, αρ. -, Α.Φ.Μ ${tenantTin}, Δ.Ο.Υ Α Σερρών`, style: 'body' },
                     { text: "συμφώνησαν από κοινού και αποδέχτηκαν τα εξής:", style: 'body' },
                     { text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτή\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:", style: 'body' },
                     {
@@ -906,7 +909,7 @@
                 if (!window.pdfMake) {
                     throw new Error('pdfMake library is not loaded.');
                 }
-                downloadAllAsSinglePdf(jsonFileInput.data?.applicant_detail || {});
+                downloadAllAsSinglePdf(globalTenant, globalTenantTin);
             } catch (error) {
                 errorDiv.textContent = 'Error initiating single PDF download: ' + error.message;
                 console.error('Single PDF Download Error:', error);
