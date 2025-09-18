@@ -49,7 +49,7 @@
             padding: 15px;
             margin-bottom: 10px;
         }
-        .download-btn, .download-all-btn {
+        .download-btn, .download-all-btn, .download-single-pdf-btn {
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -79,6 +79,7 @@
 <body>
     <div class="download-all-section">
         <button class="download-all-btn" id="downloadAllBtn" style="display: none;">Download All Agreements</button>
+        <button class="download-single-pdf-btn" id="downloadSinglePdfBtn" style="display: none;">Download All as Single PDF</button>
         <span class="agreement-counter" id="agreementCounter">Agreements: 0</span>
     </div>
     <div class="upload-section">
@@ -93,8 +94,10 @@
         const agreementsDiv = document.getElementById('agreements');
         const errorDiv = document.getElementById('error');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const downloadSinglePdfBtn = document.getElementById('downloadSinglePdfBtn');
         const agreementCounter = document.getElementById('agreementCounter');
         let agreementBlobs = [];
+        let allAgreements = [];
 
         // Check if required libraries are loaded
         window.addEventListener('load', () => {
@@ -144,6 +147,7 @@
         function generateAgreements(data, tenantTin) {
             agreementsDiv.innerHTML = '';
             agreementBlobs = []; // Reset blobs
+            allAgreements = []; // Reset agreements
             const tenant = data.applicant_detail || {};
             const fields = Array.isArray(data.field_list) ? data.field_list : [];
 
@@ -210,6 +214,7 @@
                 errorDiv.textContent = 'No valid agreements generated. All fields may belong to the tenant or have invalid data.';
                 console.warn('No valid agreements generated');
                 downloadAllBtn.style.display = 'none';
+                downloadSinglePdfBtn.style.display = 'none';
                 agreementCounter.textContent = 'Agreements: 0';
                 return;
             }
@@ -218,6 +223,10 @@
             const agreementCount = Object.keys(agreementsByTinAndDates).length;
             agreementCounter.textContent = `Agreements: ${agreementCount}`;
             downloadAllBtn.style.display = agreementCount > 1 ? 'block' : 'none';
+            downloadSinglePdfBtn.style.display = agreementCount > 0 ? 'block' : 'none';
+
+            // Store agreements for single PDF generation
+            allAgreements = Object.values(agreementsByTinAndDates);
 
             // Generate agreements for each unique owner TIN and rental dates combination
             Object.values(agreementsByTinAndDates).forEach((agreement, index) => {
@@ -700,7 +709,7 @@
                         { text: "Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:", style: 'body' },
                         { text: `2. ΧΡΟΝΟΣ ΜΙΣΘΩΣΗΣ. Η διάρκεια της μίσθωσης ορίζεται από ${rentalStartDate} μέχρι ${rentalEndDate}.`, style: 'body' },
                         { text: "3. ΜΙΣΘΩΜΑ. Το μίσθωμα ορίζεται σε 0 ευρώ, καθόσον πρόκειται για δωρεάν παραχώρηση χρήσης, όπως προβλέπεται από το άρθρο 10 παρ. 3 του Ν. 4067/2012.", style: 'body' },
-                        { text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ. Η εκμίσθωση γίνεται για την καλλιέργεια των παραπάνω αγρών, αποκλειστικά από το μισθωτή, με σκοπό την εκτέλεση των γεωργικών του δραστηριοτήτων, όπως προβλέπονται από την κείμενη νομοθεσία.", style: 'body' },
+                        { text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ. Η εκμίσθωση γίνεται για την καλλιέργεια των παραπάνω αγρούς, αποκλειστικά από το μισθωτή, με σκοπό την εκτέλεση των γεωργικών του δραστηριοτήτων, όπως προβλέπονται από την κείμενη νομοθεσία.", style: 'body' },
                         { text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτή υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.", style: 'body' },
                         { text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.", style: 'body' },
                         { text: "", margin: [0, 10] },
@@ -769,6 +778,141 @@
             }
         }
 
+        function downloadAllAsSinglePdf(tenant) {
+            if (!window.pdfMake) {
+                errorDiv.textContent = 'pdfMake library is not loaded.';
+                console.error('pdfMake not loaded for single PDF download');
+                return;
+            }
+            if (allAgreements.length === 0) {
+                errorDiv.textContent = 'No agreements available to download.';
+                console.warn('No agreements available for single PDF');
+                return;
+            }
+
+            const docDefinition = {
+                content: [],
+                styles: {
+                    header: { fontSize: 14, bold: true, alignment: 'justify', font: 'Arial' },
+                    subheader: { fontSize: 11, bold: true, alignment: 'justify', font: 'Arial' },
+                    body: { fontSize: 11, alignment: 'justify', font: 'Arial' },
+                    tableHeader: { fontSize: 10, bold: true, alignment: 'center', font: 'Arial' },
+                    tableBody: { fontSize: 10, alignment: 'center', font: 'Arial' },
+                    signature: { fontSize: 10, alignment: 'center', font: 'Arial' }
+                },
+                defaultStyle: { font: 'Arial' },
+                pageBreakBefore: function(currentNode, followingNodesOnPage, nodesOnNextPage, previousNodesOnPage) {
+                    return currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0;
+                }
+            };
+
+            allAgreements.forEach((agreement, index) => {
+                const rentalStartDate = agreement.rental_start_date !== '-' ? 
+                    new Date(agreement.rental_start_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+                const rentalEndDate = agreement.rental_end_date !== '-' ? 
+                    new Date(agreement.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+
+                if (rentalStartDate === 'Invalid Date' || rentalEndDate === 'Invalid Date') {
+                    console.warn(`Skipping agreement ${index + 1} due to invalid dates`);
+                    return;
+                }
+
+                docDefinition.content.push(
+                    { text: `Agreement ${index + 1} for ${agreement.owner.full_name} (TIN: ${agreement.owner.tin})`, style: 'header', headlineLevel: 1 },
+                    { text: "", margin: [0, 10] },
+                    { text: `Σήμερα την ${rentalStartDate} στο Δημητρίτσι οι υπογράφοντες το συμφωνητικό αυτό`, style: 'body' },
+                    { text: `αφενός ο/η ${agreement.owner.full_name}, κάτοικος -, οδός -, αρ. -, Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ ${agreement.owner.doy}`, style: 'body' },
+                    { text: `και αφετέρου ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}, επαγγέλματος αγρότης, κάτοικος 62200, οδός -, αρ. -, Α.Φ.Μ ${tenant.tin || 'Unknown'}, Δ.Ο.Υ Α Σερρών`, style: 'body' },
+                    { text: "συμφώνησαν από κοινού και αποδέχτηκαν τα εξής:", style: 'body' },
+                    { text: "1. ΜΙΣΘΙΟ. Ο πρώτος συμβαλλόμενος (\"εκμισθωτή\") έχει στην αποκλειστική κυριότητα, νομή και κατοχή του τους κάτωθι αγρούς:", style: 'body' },
+                    {
+                        table: {
+                            widths: ['5%', '15%', '20%', '20%', '15%', '15%', '10%'],
+                            body: [
+                                [
+                                    { text: 'Α/Α', style: 'tableHeader', alignment: 'center' },
+                                    { text: 'ΚΟΙΝΟΤΗΤΑ', style: 'tableHeader', alignment: 'center' },
+                                    { text: 'ΤΟΠΟΘΕΣΙΑ', style: 'tableHeader', alignment: 'center' },
+                                    { text: 'Α.Τ.Α.Κ.', style: 'tableHeader', alignment: 'center' },
+                                    { text: 'ΑΡ.ΚΤΗΜ.ΤΕΜ.', style: 'tableHeader', alignment: 'center' },
+                                    { text: 'ΧΑΡΤΟΓΡΑΦΙΚΟ', style: 'tableHeader', alignment: 'center' },
+                                    { text: 'ΕΚΤΑΣΗ (Ha)', style: 'tableHeader', alignment: 'center' }
+                                ],
+                                ...agreement.fields.map((field, fieldIndex) => [
+                                    { text: (fieldIndex + 1).toString(), style: 'tableBody', alignment: 'center' },
+                                    { text: field.community, style: 'tableBody', alignment: 'center' },
+                                    { text: field.location, style: 'tableBody', alignment: 'center' },
+                                    { text: field.atak, style: 'tableBody', alignment: 'center' },
+                                    { text: field.other_cartographic_background, style: 'tableBody', alignment: 'center' },
+                                    { text: field.cartographic_background, style: 'tableBody', alignment: 'center' },
+                                    { text: field.area_ha.toString(), style: 'tableBody', alignment: 'center' }
+                                ])
+                            ]
+                        }
+                    },
+                    { text: "Ο εκμισθωτής εκμισθώνει με το παρόν συμφωνητικό στο μισθωτή τους παραπάνω αγρούς, με τους εξής όρους και συμφωνίες που είναι όλοι ουσιώδεις:", style: 'body' },
+                    { text: `2. ΧΡΟΝΟΣ ΜΙΣΘΩΣΗΣ. Η διάρκεια της μίσθωσης ορίζεται από ${rentalStartDate} μέχρι ${rentalEndDate}.`, style: 'body' },
+                    { text: "3. ΜΙΣΘΩΜΑ. Το μίσθωμα ορίζεται σε 0 ευρώ, καθόσον πρόκειται για δωρεάν παραχώρηση χρήσης, όπως προβλέπεται από το άρθρο 10 παρ. 3 του Ν. 4067/2012.", style: 'body' },
+                    { text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ. Η εκμίσθωση γίνεται για την καλλιέργεια των παραπάνω αγρών, αποκλειστικά από το μισθωτή, με σκοπό την εκτέλεση των γεωργικών του δραστηριοτήτων, όπως προβλέπονται από την κείμενη νομοθεσία.", style: 'body' },
+                    { text: "5. ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ. Ο μισθωτή υποχρεούται να κάνει καλή χρήση του μισθίου, να το εκμεταλλεύεται με επιμέλεια και σύμφωνα με τον προορισμό του και να το διατηρεί κατάλληλο για τη συμφωνημένη χρήση, κάνοντας με αποκλειστική δαπάνη και επιμέλειά του κάθε είδους τακτικές ή έκτακτες επισκευές ή βελτιώσεις, διαφορετικά, ευθύνεται για αποζημίωση για τις φθορές και τις βλάβες που προξενήθηκαν σ' αυτό.", style: 'body' },
+                    { text: "Το παρόν μισθωτήριο διαβάστηκε και έγινε αποδεκτό από τούς συμβαλλομένους, υπογράφη από αυτούς και ο καθένας έλαβε από ένα όμοιο αντίτυπο.", style: 'body' },
+                    { text: "", margin: [0, 10] },
+                    { text: "", margin: [0, 10] },
+                    { text: "ΟΙ ΣΥΜΒΑΛΛΟΜΕΝΟΙ", style: 'subheader' },
+                    {
+                        table: {
+                            widths: ['50%', '50%'],
+                            body: [
+                                [
+                                    { text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ\nΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\nμε Α.Δ.Τ.:________________`, style: 'signature', alignment: 'center' },
+                                    { text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ\nΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\nμε Α.Δ.Τ.:${tenant.identity_number || '-'}`, style: 'signature', alignment: 'center' }
+                                ]
+                            ]
+                        },
+                        layout: 'noBorders'
+                    },
+                    { text: "", margin: [0, 10] },
+                    { text: "", margin: [0, 10] },
+                    { text: "", margin: [0, 10] },
+                    { text: "", margin: [0, 10] },
+                    { text: "", margin: [0, 10] },
+                    { text: "", margin: [0, 10] },
+                    { text: "", margin: [0, 10] },
+                    { text: "Για το γνήσιο των υπογραφών", style: 'body' },
+                    { text: `ΗΜΕΡΟΜΗΝΙΑ: ${rentalStartDate}`, style: 'body' },
+                    { text: "", pageBreak: 'after' }
+                );
+            });
+
+            // Remove the last page break if it exists
+            if (docDefinition.content.length > 0 && docDefinition.content[docDefinition.content.length - 1].pageBreak) {
+                docDefinition.content.pop();
+            }
+
+            try {
+                const pdfDoc = pdfMake.createPdf(docDefinition);
+                pdfDoc.download(`All_Agreements_${new Date().toISOString().slice(0, 10)}.pdf`);
+                console.log('Single PDF Document download initiated');
+            } catch (error) {
+                errorDiv.textContent = 'Error generating single PDF document: ' + error.message;
+                console.error('Single PDF Document Generation Error:', error);
+            }
+        }
+
+        downloadAllBtn.addEventListener('click', downloadAllAgreements);
+
+        downloadSinglePdfBtn.addEventListener('click', () => {
+            try {
+                if (!window.pdfMake) {
+                    throw new Error('pdfMake library is not loaded.');
+                }
+                downloadAllAsSinglePdf(jsonFileInput.data?.applicant_detail || {});
+            } catch (error) {
+                errorDiv.textContent = 'Error initiating single PDF download: ' + error.message;
+                console.error('Single PDF Download Error:', error);
+            }
+        });
+
         function downloadAllAgreements() {
             if (!window.JSZip || agreementBlobs.length === 0) {
                 errorDiv.textContent = 'Unable to download all agreements. JSZip not loaded or no agreements generated.';
@@ -786,14 +930,13 @@
                 console.log('All agreements downloaded as ZIP.');
                 agreementBlobs = []; // Clear blobs after download
                 downloadAllBtn.style.display = 'none';
+                downloadSinglePdfBtn.style.display = 'none';
                 agreementCounter.textContent = 'Agreements: 0';
             }).catch(error => {
                 errorDiv.textContent = 'Error creating ZIP file: ' + error.message;
                 console.error('ZIP Generation Error:', error);
             });
         }
-
-        downloadAllBtn.addEventListener('click', downloadAllAgreements);
     </script>
 </body>
 </html>
