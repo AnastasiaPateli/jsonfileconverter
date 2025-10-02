@@ -136,8 +136,18 @@
         }
 
         function getKaek(propertyList) {
-            if (!propertyList || !Array.isArray(propertyList) || propertyList.length === 0) return null;
-            return propertyList[0].kaek || null;
+            if (!propertyList || !Array.isArray(propertyList) || propertyList.length === 0) {
+                console.warn('Invalid or empty field_property_list:', propertyList);
+                return null;
+            }
+            // Check all objects in propertyList for a valid kaek
+            for (const property of propertyList) {
+                if (property.kaek) {
+                    return property.kaek;
+                }
+            }
+            console.warn('No valid kaek found in field_property_list:', propertyList);
+            return null;
         }
 
         function generateAgreements(data, tenantTin) {
@@ -149,26 +159,32 @@
 
             if (!fields.length) {
                 errorDiv.textContent = 'No fields found in the JSON data.';
-                console.warn('No fields in JSON');
+                console.warn('No fields in JSON:', data.field_list);
                 return;
             }
 
+            console.log('Processing fields:', fields.length);
             const agreementsByTinAndDates = {};
 
-            fields.forEach(field => {
+            fields.forEach((field, fieldIndex) => {
                 const fieldInfo = field.field_info || {};
                 const propertyList = Array.isArray(field.field_property_list) ? field.field_property_list : [];
                 const geospatialData = field.field_geospatial_data || {};
 
-                propertyList.forEach(property => {
+                if (!propertyList.length) {
+                    console.warn(`Field ${field.id} has no field_property_list, skipping.`);
+                    return;
+                }
+
+                propertyList.forEach((property, propIndex) => {
                     const tin = property.tin || 'unknown_tin_' + Math.random().toString(36).substr(2, 9);
                     const fullName = property.full_name || 'Unknown Owner';
                     if (tin.startsWith('unknown_tin_') || fullName === 'Unknown Owner') {
-                        console.log(`Skipping field due to unknown owner: TIN=${tin}, Name=${fullName}`);
+                        console.warn(`Skipping property in field ${field.id} due to unknown owner: TIN=${tin}, Name=${fullName}`);
                         return;
                     }
                     if (tin === tenantTin) {
-                        console.log(`Skipping field for TIN ${tin} as it matches tenant TIN ${tenantTin}`);
+                        console.warn(`Skipping property in field ${field.id} for TIN ${tin} as it matches tenant TIN ${tenantTin}`);
                         return;
                     }
                     const rentalKey = `${tin}_${property.rental_start_date || '-'}_${property.rental_end_date || '-'}`;
@@ -197,13 +213,14 @@
                         rental_end_date: property.rental_end_date || '-',
                         property_tin: property.tin
                     });
+                    console.log(`Added field to agreement: TIN=${tin}, Field=${field.id}, PropIndex=${propIndex}`);
                 });
             });
 
-            console.log('Agreements by TIN and Dates:', agreementsByTinAndDates);
+            console.log('Generated agreements:', Object.keys(agreementsByTinAndDates).length, agreementsByTinAndDates);
 
             if (Object.keys(agreementsByTinAndDates).length === 0) {
-                errorDiv.textContent = 'No valid agreements generated. All fields may belong to the tenant or have invalid data.';
+                errorDiv.textContent = 'No valid agreements generated. All fields may belong to the tenant, have invalid owner data, or lack valid field_property_list.';
                 console.warn('No valid agreements generated');
                 downloadAllBtn.style.display = 'none';
                 downloadSingleBtn.style.display = 'none';
@@ -278,6 +295,7 @@
                 allAgreementsData.push({ agreement, tenant, tenantTin });
 
                 agreementsDiv.appendChild(agreementDiv);
+                console.log(`Rendered agreement ${index + 1} for ${agreement.owner.full_name}`);
             });
         }
 
@@ -642,7 +660,6 @@
             }).catch(error => {
                 console.error('Document Generation Error:', error);
                 throw error;
-лично
             });
         }
 
@@ -995,8 +1012,17 @@
                                 ],
                                 alignment: AlignmentType.JUSTIFIED
                             })
-                        ]
-                    ]
+                        ];
+
+                        if (index < allAgreementsData.length - 1) {
+                            agreementContent.push(new Paragraph({
+                                children: [new TextRun({ text: "", break: 1 })],
+                                pageBreakBefore: true
+                            }));
+                        }
+
+                        return agreementContent;
+                    })
                 }]
             });
 
