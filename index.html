@@ -135,6 +135,12 @@
             reader.readAsText(file);
         }
 
+        function getKaek(relatedList, fieldId) {
+          if (!relatedList || !Array.isArray(relatedList)) return null;
+          const item = relatedList.find(r => r.field_id === fieldId);
+          return item ? item.kaek : null;
+        }
+
         function generateAgreements(data, tenantTin) {
             agreementsDiv.innerHTML = '';
             agreementBlobs = []; // Reset blobs
@@ -188,6 +194,7 @@
                         community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
+                        kaek: getKaek(data.related_field_list, field.id) || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0',
@@ -234,6 +241,7 @@
                         <th>ΚΟΙΝΟΤΗΤΑ (κωδ.)</th>
                         <th>ΤΟΠΟΘΕΣΙΑ</th>
                         <th>Α.Τ.Α.Κ.</th>
+                        <th>Κ.Α.Ε.Κ.</th>
                         <th>ΑΡ.ΚΤΗΜ.ΤΕΜ.</th>
                         <th>ΧΑΡΤΟΓΡΑΦΙΚΟ</th>
                         <th>ΕΚΤΑΣΗ (Ha)</th>
@@ -246,6 +254,7 @@
                         <td>${field.community}</td>
                         <td>${field.location}</td>
                         <td>${field.atak}</td>
+                        <td>${field.kaek}</td>
                         <td>${field.other_cartographic_background}</td>
                         <td>${field.cartographic_background}</td>
                         <td>${field.area_ha}</td>
@@ -378,9 +387,10 @@
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α/Α", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΚΟΙΝΟΤΗΤΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΤΟΠΟΘΕΣΙΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Κ.Α.Ε.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΕΚΤΑΣΗ (Ha)", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
@@ -390,6 +400,7 @@
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.community, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.location, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.atak, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.kaek, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.other_cartographic_background, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.cartographic_background, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.area_ha.toString(), font: "Arial" })], alignment: AlignmentType.CENTER })] })
@@ -743,9 +754,10 @@
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α/Α", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΚΟΙΝΟΤΗΤΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΤΟΠΟΘΕΣΙΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Κ.Α.Ε.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΕΚΤΑΣΗ (Ha)", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
                                         ]
                                     }),
@@ -755,6 +767,7 @@
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.community, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.location, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.atak, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.kaek, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.other_cartographic_background, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.cartographic_background, font: "Arial" })], alignment: AlignmentType.CENTER })] }),
                                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: field.area_ha.toString(), font: "Arial" })], alignment: AlignmentType.CENTER })] })
