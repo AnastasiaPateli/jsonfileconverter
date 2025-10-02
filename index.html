@@ -90,7 +90,7 @@
         const downloadSingleBtn = document.getElementById('downloadSingleBtn');
         const agreementCounter = document.getElementById('agreementCounter');
         let agreementBlobs = [];
-        let allAgreementsData = []; // Store agreements for single document
+        let allAgreementsData = [];
 
         // Check if required libraries are loaded
         window.addEventListener('load', () => {
@@ -135,16 +135,15 @@
             reader.readAsText(file);
         }
 
-        function getKaek(relatedList, fieldId) {
-          if (!relatedList || !Array.isArray(relatedList)) return null;
-          const item = relatedList.find(r => r.field_id === fieldId);
-          return item ? item.kaek : null;
+        function getKaek(propertyList) {
+            if (!propertyList || !Array.isArray(propertyList) || propertyList.length === 0) return null;
+            return propertyList[0].kaek || null;
         }
 
         function generateAgreements(data, tenantTin) {
             agreementsDiv.innerHTML = '';
-            agreementBlobs = []; // Reset blobs
-            allAgreementsData = []; // Reset agreements data
+            agreementBlobs = [];
+            allAgreementsData = [];
             const tenant = data.applicant_detail || {};
             const fields = Array.isArray(data.field_list) ? data.field_list : [];
 
@@ -154,7 +153,6 @@
                 return;
             }
 
-            // Group fields by owner TIN and rental dates
             const agreementsByTinAndDates = {};
 
             fields.forEach(field => {
@@ -165,17 +163,14 @@
                 propertyList.forEach(property => {
                     const tin = property.tin || 'unknown_tin_' + Math.random().toString(36).substr(2, 9);
                     const fullName = property.full_name || 'Unknown Owner';
-                    // Skip if owner is unknown
                     if (tin.startsWith('unknown_tin_') || fullName === 'Unknown Owner') {
                         console.log(`Skipping field due to unknown owner: TIN=${tin}, Name=${fullName}`);
                         return;
                     }
-                    // Skip if tenant TIN matches owner TIN
                     if (tin === tenantTin) {
                         console.log(`Skipping field for TIN ${tin} as it matches tenant TIN ${tenantTin}`);
                         return;
                     }
-                    // Create a unique key based on TIN, rental_start_date, and rental_end_date
                     const rentalKey = `${tin}_${property.rental_start_date || '-'}_${property.rental_end_date || '-'}`;
                     if (!agreementsByTinAndDates[rentalKey]) {
                         agreementsByTinAndDates[rentalKey] = {
@@ -194,7 +189,7 @@
                         community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
-                        kaek: getKaek(data.related_field_list, field.id) || '-',
+                        kaek: getKaek(propertyList) || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0',
@@ -207,7 +202,6 @@
 
             console.log('Agreements by TIN and Dates:', agreementsByTinAndDates);
 
-            // Check if any valid agreements exist
             if (Object.keys(agreementsByTinAndDates).length === 0) {
                 errorDiv.textContent = 'No valid agreements generated. All fields may belong to the tenant or have invalid data.';
                 console.warn('No valid agreements generated');
@@ -217,13 +211,11 @@
                 return;
             }
 
-            // Update agreement counter
             const agreementCount = Object.keys(agreementsByTinAndDates).length;
             agreementCounter.textContent = `Agreements: ${agreementCount}`;
             downloadAllBtn.style.display = agreementCount > 1 ? 'block' : 'none';
             downloadSingleBtn.style.display = agreementCount > 0 ? 'block' : 'none';
 
-            // Generate agreements for each unique owner TIN and rental dates combination
             Object.values(agreementsByTinAndDates).forEach((agreement, index) => {
                 const agreementDiv = document.createElement('div');
                 agreementDiv.className = 'agreement';
@@ -276,7 +268,6 @@
                 };
                 agreementDiv.appendChild(downloadBtn);
 
-                // Generate blob for "Download All" functionality
                 try {
                     generateDocx(agreement, tenant, tenantTin, true);
                 } catch (error) {
@@ -284,7 +275,6 @@
                     errorDiv.textContent = 'Error preparing agreement for download all: ' + error.message;
                 }
 
-                // Store agreement data for single document
                 allAgreementsData.push({ agreement, tenant, tenantTin });
 
                 agreementsDiv.appendChild(agreementDiv);
@@ -303,7 +293,6 @@
             const rentalEndDate = agreement.rental_end_date !== '-' ? 
                 new Date(agreement.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
 
-            // Handle invalid dates
             if (rentalStartDate === 'Invalid Date') {
                 throw new Error('Invalid rental start date in agreement data.');
             }
@@ -653,6 +642,7 @@
             }).catch(error => {
                 console.error('Document Generation Error:', error);
                 throw error;
+лично
             });
         }
 
@@ -1005,18 +995,8 @@
                                 ],
                                 alignment: AlignmentType.JUSTIFIED
                             })
-                        ];
-
-                        // Add page break after each agreement except the last
-                        if (index < allAgreementsData.length - 1) {
-                            agreementContent.push(new Paragraph({
-                                children: [new TextRun({ text: "", break: 1 })],
-                                pageBreakBefore: true
-                            }));
-                        }
-
-                        return agreementContent;
-                    })
+                        ]
+                    ]
                 }]
             });
 
@@ -1044,7 +1024,7 @@
             zip.generateAsync({ type: 'blob' }).then(content => {
                 saveAs(content, `All_Agreements_${new Date().toISOString().slice(0, 10)}.zip`);
                 console.log('All agreements downloaded as ZIP.');
-                agreementBlobs = []; // Clear blobs after download
+                agreementBlobs = [];
                 downloadAllBtn.style.display = 'none';
                 downloadSingleBtn.style.display = 'none';
                 agreementCounter.textContent = 'Agreements: 0';
