@@ -135,18 +135,18 @@
             reader.readAsText(file);
         }
 
-        function getKaek(propertyList) {
-            if (!propertyList || !Array.isArray(propertyList) || propertyList.length === 0) {
-                console.warn('Invalid or empty field_property_list:', propertyList);
+        function getKaek(subilotList) {
+            if (!subilotList || !Array.isArray(subilotList) || subilotList.length === 0) {
+                console.warn('Invalid or empty subilot_list:', subilotList);
                 return null;
             }
-            // Check all objects in propertyList for a valid kaek
-            for (const property of propertyList) {
-                if (property.kaek) {
-                    return property.kaek;
+            // Check all objects in subilotList for a valid kaek
+            for (const subilot of subilotList) {
+                if (subilot.kaek !== undefined && subilot.kaek !== null) {
+                    return subilot.kaek;
                 }
             }
-            console.warn('No valid kaek found in field_property_list:', propertyList);
+            console.warn('No valid kaek found in subilot_list:', subilotList);
             return null;
         }
 
@@ -172,7 +172,7 @@
                 const geospatialData = field.field_geospatial_data || {};
 
                 if (!propertyList.length) {
-                    console.warn(`Field ${field.id} has no field_property_list, skipping.`);
+                    console.warn(`Field ${field.id || fieldIndex} has no field_property_list, skipping.`);
                     return;
                 }
 
@@ -180,11 +180,11 @@
                     const tin = property.tin || 'unknown_tin_' + Math.random().toString(36).substr(2, 9);
                     const fullName = property.full_name || 'Unknown Owner';
                     if (tin.startsWith('unknown_tin_') || fullName === 'Unknown Owner') {
-                        console.warn(`Skipping property in field ${field.id} due to unknown owner: TIN=${tin}, Name=${fullName}`);
+                        console.warn(`Skipping property in field ${field.id || fieldIndex} due to unknown owner: TIN=${tin}, Name=${fullName}`);
                         return;
                     }
                     if (tin === tenantTin) {
-                        console.warn(`Skipping property in field ${field.id} for TIN ${tin} as it matches tenant TIN ${tenantTin}`);
+                        console.warn(`Skipping property in field ${field.id || fieldIndex} for TIN ${tin} as it matches tenant TIN ${tenantTin}`);
                         return;
                     }
                     const rentalKey = `${tin}_${property.rental_start_date || '-'}_${property.rental_end_date || '-'}`;
@@ -205,7 +205,7 @@
                         community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
-                        kaek: getKaek(propertyList) || '-',
+                        kaek: getKaek(field.subilot_list) || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0',
@@ -213,7 +213,7 @@
                         rental_end_date: property.rental_end_date || '-',
                         property_tin: property.tin
                     });
-                    console.log(`Added field to agreement: TIN=${tin}, Field=${field.id}, PropIndex=${propIndex}`);
+                    console.log(`Added field to agreement: TIN=${tin}, Field=${field.id || fieldIndex}, PropIndex=${propIndex}`);
                 });
             });
 
@@ -670,7 +670,7 @@
                 return;
             }
 
-            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, PageBreak } = docx;
+            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = docx;
 
             const doc = new Document({
                 sections: [{
@@ -891,8 +891,8 @@
                                                         children: [
                                                             new TextRun({
                                                                 text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
-                                                                ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n
-                                                                με Α.Δ.Τ.:________________`,
+                                                            ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n
+                                                            με Α.Δ.Τ.:________________`,
                                                                 size: 20,
                                                                 font: "Arial"
                                                             })
@@ -908,8 +908,8 @@
                                                         children: [
                                                             new TextRun({
                                                                 text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
-                                                                ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n 
-                                                                με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
+                                                            ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n 
+                                                            με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
                                                                 size: 20,
                                                                 font: "Arial"
                                                             })
