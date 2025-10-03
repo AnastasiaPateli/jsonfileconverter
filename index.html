@@ -135,19 +135,19 @@
             reader.readAsText(file);
         }
 
-        function getKaek(subilotList) {
-            if (!subilotList || !Array.isArray(subilotList) || subilotList.length === 0) {
-                console.warn('Invalid or empty subilot_list:', subilotList);
-                return null;
+        function getKaek(propertyList) {
+            if (!propertyList || !Array.isArray(propertyList) || propertyList.length === 0) {
+                console.warn('Invalid or empty field_property_list:', propertyList);
+                return '-';
             }
-            // Check all objects in subilotList for a valid kaek
-            for (const subilot of subilotList) {
-                if (subilot.kaek !== undefined && subilot.kaek !== null) {
-                    return subilot.kaek;
+            // Check all objects in propertyList for a valid kaek
+            for (const property of propertyList) {
+                if (property.kaek !== undefined && property.kaek !== null && property.kaek !== '') {
+                    return property.kaek;
                 }
             }
-            console.warn('No valid kaek found in subilot_list:', subilotList);
-            return null;
+            console.warn('No valid kaek found in field_property_list:', propertyList);
+            return '-';
         }
 
         function generateAgreements(data, tenantTin) {
@@ -205,7 +205,7 @@
                         community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
-                        kaek: getKaek(field.subilot_list) || '-',
+                        kaek: getKaek([property]) || '-', // Pass only the current property to getKaek
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0',
@@ -213,7 +213,7 @@
                         rental_end_date: property.rental_end_date || '-',
                         property_tin: property.tin
                     });
-                    console.log(`Added field to agreement: TIN=${tin}, Field=${field.id || fieldIndex}, PropIndex=${propIndex}`);
+                    console.log(`Added field to agreement: TIN=${tin}, Field=${field.id || fieldIndex}, PropIndex=${propIndex}, KAEK=${getKaek([property])}`);
                 });
             });
 
