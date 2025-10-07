@@ -102,6 +102,13 @@
 
         jsonFileInput.addEventListener('change', handleFileUpload);
 
+        function validateJsonStructure(data) {
+            if (!data.tin) return 'Missing tenant TIN in JSON data.';
+            if (!data.applicant_detail || typeof data.applicant_detail !== 'object') return 'Invalid or missing applicant_detail in JSON data.';
+            if (!Array.isArray(data.field_list)) return 'Invalid or missing field_list in JSON data.';
+            return null;
+        }
+
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) {
@@ -114,14 +121,14 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    const tenantTin = data.tin || '';
-                    if (!tenantTin) {
-                        errorDiv.textContent = 'No TIN found in JSON data.';
-                        console.warn('No TIN found in JSON');
+                    const validationError = validateJsonStructure(data);
+                    if (validationError) {
+                        errorDiv.textContent = validationError;
+                        console.warn(validationError);
                         return;
                     }
-                    console.log('Tenant TIN:', tenantTin);
-                    generateAgreements(data, tenantTin);
+                    console.log('Tenant TIN:', data.tin);
+                    generateAgreements(data, data.tin);
                     errorDiv.textContent = '';
                 } catch (error) {
                     errorDiv.textContent = 'Error parsing JSON file: ' + error.message;
@@ -140,7 +147,6 @@
                 console.warn('Invalid or empty field_property_list:', propertyList);
                 return '-';
             }
-            // Check all objects in propertyList for a valid kaek
             for (const property of propertyList) {
                 if (property.kaek !== undefined && property.kaek !== null && property.kaek !== '') {
                     return property.kaek;
@@ -205,7 +211,7 @@
                         community: geospatialData.community_code || 'Unknown',
                         location: fieldInfo.location || 'Unknown',
                         atak: property.atak || '-',
-                        kaek: getKaek([property]) || '-', // Pass only the current property to getKaek
+                        kaek: getKaek([property]) || '-',
                         other_cartographic_background: fieldInfo.other_cartographic_background || '-',
                         cartographic_background: geospatialData.cartographic_background || '-',
                         area_ha: property.area_participation_atak || '0',
@@ -299,6 +305,16 @@
             });
         }
 
+        function formatGreekDate(dateStr) {
+            if (!dateStr || dateStr === '-') return '-';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) {
+                console.warn(`Invalid date: ${dateStr}`);
+                return '-';
+            }
+            return date.toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
         function generateDocx(agreement, tenant, tenantTin, storeBlob = false) {
             if (!window.docx || !window.saveAs) {
                 throw new Error('Required libraries (docx.js or FileSaver.js) are not loaded.');
@@ -306,16 +322,11 @@
 
             const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = docx;
 
-            const rentalStartDate = agreement.rental_start_date !== '-' ? 
-                new Date(agreement.rental_start_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
-            const rentalEndDate = agreement.rental_end_date !== '-' ? 
-                new Date(agreement.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            const rentalStartDate = formatGreekDate(agreement.rental_start_date);
+            const rentalEndDate = formatGreekDate(agreement.rental_end_date);
 
-            if (rentalStartDate === 'Invalid Date') {
-                throw new Error('Invalid rental start date in agreement data.');
-            }
-            if (rentalEndDate === 'Invalid Date') {
-                throw new Error('Invalid rental end date in agreement data.');
+            if (rentalStartDate === '-' || rentalEndDate === '-') {
+                throw new Error('Invalid rental start or end date in agreement data.');
             }
 
             const doc = new Document({
@@ -330,11 +341,8 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({ 
-                            children: [new TextRun({ text: "", size: 24 })],
-                            alignment: AlignmentType.JUSTIFIED 
+                            alignment: AlignmentType.CENTER,
+                            spacing: { after: 200 }
                         }),
                         new Paragraph({
                             children: [
@@ -344,17 +352,19 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `1. ο/η ${agreement.owner.full_name}, με Α.Φ.Μ ${agreement.owner.tin} ως εκμισθωτής και`,
+                                    text: `1. ο/η ${agreement.owner.full_name}, με Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ. ${agreement.owner.doy}, ως εκμισθωτής και`,
                                     size: 22,
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
                         new Paragraph({
                             children: [
@@ -364,7 +374,8 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
                         new Paragraph({
                             children: [
@@ -374,32 +385,34 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 200 }
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "1. ΣΤΟΙΧΙΕΑ ΜΙΣΘΩΣΗΣ: ΜΙΣΘΩΣΗΣ:Ο Εκμισθωτής παραχωρεί στον μισθωτή τη χρήση και
-εκμετάλλευση του/των αγροτεμαχίου/ων με τα εξής στοιχεία:",
+                                    text: "1. ΣΤΟΙΧΕΙΑ ΜΙΣΘΩΣΗΣ: Ο εκμισθωτής παραχωρεί στον μισθωτή τη χρήση και εκμετάλλευση του/των αγροτεμαχίου/ων με τα εξής στοιχεία:",
                                     size: 22,
-                                    font: "Arial"
+                                    font: "Arial",
+                                    bold: true
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
                         new Table({
                             width: { size: 100, type: WidthType.PERCENTAGE },
                             rows: [
                                 new TableRow({
                                     children: [
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α/Α", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΚΟΙΝΟΤΗΤΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΤΟΠΟΘΕΣΙΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Κ.Α.Ε.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
-                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΕΚΤΑΣΗ (Ha)", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α/Α", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΚΟΙΝΟΤΗΤΑ", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΤΟΠΟΘΕΣΙΑ", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Κ.Α.Ε.Κ.", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
+                                        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΕΚΤΑΣΗ (Ha)", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
                                     ]
                                 }),
                                 ...agreement.fields.map((field, index) => new TableRow({
@@ -421,75 +434,56 @@
                                 new TextRun({
                                     text: `2. ΔΙΑΡΚΕΙΑ ΜΙΣΘΩΣΗΣ: Η μίσθωση αρχίζει από ${rentalStartDate} και λήγει την ${rentalEndDate} σύμφωνα με το άρθρο 620 ΑΚ, με δυνατότητα παράτασης κατόπιν συμφωνίας.`,
                                     size: 22,
-                                    font: "Arial"
+                                    font: "Arial",
+                                    bold: true
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { before: 200, after: 100 }
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "3. ΜΙΣΘΩΜΑ:Το μίσθωμα είναι ποσοστιαίο % και ορίζεται όπως δηλώνεται ως δαπάνη στο Έντυπο Ε3 του μισθωτή . Το μίσθωμα για τον εκμισθωτή δεν μπορεί να είναι μικρότερο από τα τεκμαρτά εισοδήματα, όπως ορίζονται στο άρθρο 40 του Ν. 4172/2013 (ΦΕΚ) και
-δηλώνεται στο Έντυπο Ε2 της ΑΑΔΕ. Σε περίπτωση δωρεάν παραχώρησης (χρησιδανείου), π.χ. από γονέα σε τέκνο, σύζυγο σε σύζυγο ή αμοιβαία ανταλλαγή χρήσης, η παραχώρηση γίνεται δωρεάν ως χρησιδάνειο (άρθρο 810 ΑΚ), χωρίς χρηματικό ή άλλο αντάλλαγμα, και
-δεν υπολογίζεται τεκμαρτό εισόδημα, εφόσον το αγροτεμάχιο χρησιμοποιείται για αγροτική δραστηριότητα (άρθρο 39 παρ. 4 Ν. 4172/2013). Αλλιώς, το τεκμαρτό εισόδημα είναι 3% της αντικειμενικής αξίας.",
+                                    text: "3. ΜΙΣΘΩΜΑ: Το μίσθωμα είναι ποσοστιαίο % και ορίζεται όπως δηλώνεται ως δαπάνη στο Έντυπο Ε3 του μισθωτή. Το μίσθωμα για τον εκμισθωτή δεν μπορεί να είναι μικρότερο από τα τεκμαρτά εισοδήματα, όπως ορίζονται στο άρθρο 40 του Ν. 4172/2013 (ΦΕΚ) και δηλώνεται στο Έντυπο Ε2 της ΑΑΔΕ. Σε περίπτωση δωρεάν παραχώρησης (χρησιδανείου), π.χ. από γονέα σε τέκνο, σύζυγο σε σύζυγο ή αμοιβαία ανταλλαγή χρήσης, η παραχώρηση γίνεται δωρεάν ως χρησιδάνειο (άρθρο 810 ΑΚ), χωρίς χρηματικό ή άλλο αντάλλαγμα, και δεν υπολογίζεται τεκμαρτό εισόδημα, εφόσον το αγροτεμάχιο χρησιμοποιείται για αγροτική δραστηριότητα (άρθρο 39 παρ. 4 Ν. 4172/2013). Αλλιώς, το τεκμαρτό εισόδημα είναι 3% της αντικειμενικής αξίας.",
                                     size: 22,
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ: Η μίσθωση συνάπτεται με σκοπό την καλλιέργεια του/των αγροτεμαχίου/ων από τον μισθωτή για την εκτέλεση γεωργικών δραστηριοτήτων, σύμφωνα με την ισχύουσα νομοθεσία. Επιπλέον, η μίσθωση παρέχει τη δυνατότητα στον μισθωτή να
-υποβάλει Ενιαία Αίτηση Ενίσχυσης (ΕΑΕ) μέσω του ΟΠΕΚΕΠΕ, για την ενεργοποίηση δικαιωμάτων βασικής ενίσχυσης και συναφών ενισχύσεων της Κοινής Αγροτικής Πολιτικής (ΚΑΠ) 2023-2027, σύμφωνα με τον Καν. ΕΕ 1307/2013 και τον Ν. 4684/2020. Υπεκμίσθωση
-του αγροτεμαχίου επιτρέπεται μόνο με προηγούμενη έγγραφη συναίνεση του εκμισθωτή, σύμφωνα με το άρθρο 624 ΑΚ.",
+                                    text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ: Η μίσθωση συνάπτεται με σκοπό την καλλιέργεια του/των αγροτεμαχίου/ων από τον μισθωτή για την εκτέλεση γεωργικών δραστηριοτήτων, σύμφωνα με την ισχύουσα νομοθεσία. Επιπλέον, η μίσθωση παρέχει τη δυνατότητα στον μισθωτή να υποβάλει Ενιαία Αίτηση Ενίσχυσης (ΕΑΕ) μέσω του ΟΠΕΚΕΠΕ, για την ενεργοποίηση δικαιωμάτων βασικής ενίσχυσης και συναφών ενισχύσεων της Κοινής Αγροτικής Πολιτικής (ΚΑΠ) 2023-2027, σύμφωνα με τον Καν. ΕΕ 1307/2013 και τον Ν. 4684/2020. Υπεκμίσθωση του αγροτεμαχίου επιτρέπεται μόνο με προηγούμενη έγγραφη συναίνεση του εκμισθωτή, σύμφωνα με το άρθρο 624 ΑΚ.",
                                     size: 22,
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "5. ΥΠΟΧΡΕΩΣΕΙΣ ΜΙΣΘΩΤΗ - ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ:Ο Μισθωτής υποχρεούται να χρησιμοποιεί το μίσθιο με επιμέλεια, σύμφωνα με τον προορισμό του, και να το διατηρεί σε κατάσταση κατάλληλη για τη συμφωνημένη χρήση.",
+                                    text: "5. ΥΠΟΧΡΕΩΣΕΙΣ ΜΙΣΘΩΤΗ - ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ: Ο μισθωτής υποχρεούται να χρησιμοποιεί το μίσθιο με επιμέλεια, σύμφωνα με τον προορισμό του, και να το διατηρεί σε κατάσταση κατάλληλη για τη συμφωνημένη χρήση.",
                                     size: 22,
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "6. ΤΕΛΙΚΕΣ ΔΙΑΤΑΞΕΙΣ: Το παρόν συμφωνητικό διαβάστηκε και έγινε αμοιβαία αποδεκτό
-από τους συμβαλλόμενους. Κάθε συμβαλλόμενος έλαβε ένα (1) όμοιο αντίτυπο, το οποίο έχει πλήρη νομική ισχύ.",
+                                    text: "6. ΤΕΛΙΚΕΣ ΔΙΑΤΑΞΕΙΣ: Το παρόν συμφωνητικό διαβάστηκε και έγινε αμοιβαία αποδεκτό από τους συμβαλλόμενους. Κάθε συμβαλλόμενος έλαβε ένα (1) όμοιο αντίτυπο, το οποίο έχει πλήρη νομική ισχύ.",
                                     size: 22,
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 200 }
                         }),
                         new Paragraph({
                             children: [
@@ -500,7 +494,8 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.CENTER,
+                            spacing: { before: 200, after: 100 }
                         }),
                         new Table({
                             width: { size: 100, type: WidthType.PERCENTAGE },
@@ -519,9 +514,7 @@
                                                 new Paragraph({
                                                     children: [
                                                         new TextRun({
-                                                            text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
-                                                            ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n
-                                                            με Α.Δ.Τ.:________________`,
+                                                            text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ\nΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\nμε Α.Δ.Τ.: ________________`,
                                                             size: 20,
                                                             font: "Arial"
                                                         })
@@ -536,9 +529,7 @@
                                                 new Paragraph({
                                                     children: [
                                                         new TextRun({
-                                                            text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
-                                                            ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n 
-                                                            με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
+                                                            text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ\nΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\nμε Α.Δ.Τ.: ${tenant.identity_number || '-'}`,
                                                             size: 20,
                                                             font: "Arial"
                                                         })
@@ -554,82 +545,13 @@
                         new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: "                                   ",
-                                    size: 22,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
                                     text: "Για το γνήσιο των υπογραφών",
                                     size: 22,
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { before: 200, after: 100 }
                         }),
                         new Paragraph({
                             children: [
@@ -639,18 +561,19 @@
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 100 }
                         }),
-                          new Paragraph({
+                        new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως
-υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
+                                    text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
                                     size: 20,
                                     font: "Arial"
                                 })
                             ],
-                            alignment: AlignmentType.JUSTIFIED
+                            alignment: AlignmentType.JUSTIFIED,
+                            spacing: { after: 200 }
                         })
                     ]
                 }]
@@ -684,12 +607,10 @@
                     children: allAgreementsData.flatMap((data, index) => {
                         const { agreement, tenant, tenantTin } = data;
 
-                        const rentalStartDate = agreement.rental_start_date !== '-' ? 
-                            new Date(agreement.rental_start_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
-                        const rentalEndDate = agreement.rental_end_date !== '-' ? 
-                            new Date(agreement.rental_end_date).toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+                        const rentalStartDate = formatGreekDate(agreement.rental_start_date);
+                        const rentalEndDate = formatGreekDate(agreement.rental_end_date);
 
-                        if (rentalStartDate === 'Invalid Date' || rentalEndDate === 'Invalid Date') {
+                        if (rentalStartDate === '-' || rentalEndDate === '-') {
                             console.error('Invalid date in agreement:', agreement);
                             return [];
                         }
@@ -704,11 +625,8 @@
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({ 
-                                children: [new TextRun({ text: "", size: 24 })],
-                                alignment: AlignmentType.JUSTIFIED 
+                                alignment: AlignmentType.CENTER,
+                                spacing: { after: 200 }
                             }),
                             new Paragraph({
                                 children: [
@@ -718,27 +636,30 @@
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: `1. ο/η ${agreement.owner.full_name}, με Α.Φ.Μ ${agreement.owner.tin} ως εκμισθωτής και`,
+                                        text: `1. ο/η ${agreement.owner.full_name}, με Α.Φ.Μ ${agreement.owner.tin}, Δ.Ο.Υ. ${agreement.owner.doy}, ως εκμισθωτής και`,
                                         size: 22,
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: `2. ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}, με Α.Φ.Μ ${tenantTin}, ως εκμισθωτής`,
+                                        text: `2. ο/η ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}, με Α.Φ.Μ ${tenantTin}, ως μισθωτής`,
                                         size: 22,
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Paragraph({
                                 children: [
@@ -748,32 +669,34 @@
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 200 }
                             }),
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: "1. ΣΤΟΙΧΕΙΑ ΜΙΣΘΩΣΗΣ:Ο Εκμισθωτής παραχωρεί στον μισθωτή τη χρήση και
-εκμετάλλευση του/των αγροτεμαχίου/ων με τα εξής στοιχεία:",
+                                        text: "1. ΣΤΟΙΧΕΙΑ ΜΙΣΘΩΣΗΣ: Ο εκμισθωτής παραχωρεί στον μισθωτή τη χρήση και εκμετάλλευση του/των αγροτεμαχίου/ων με τα εξής στοιχεία:",
                                         size: 22,
-                                        font: "Arial"
+                                        font: "Arial",
+                                        bold: true
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Table({
                                 width: { size: 100, type: WidthType.PERCENTAGE },
                                 rows: [
                                     new TableRow({
                                         children: [
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α/Α", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΚΟΙΝΟΤΗΤΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΤΟΠΟΘΕΣΙΑ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Κ.Α.Ε.Κ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
-                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΕΚΤΑΣΗ (Ha)", font: "Arial" })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α/Α", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΚΟΙΝΟΤΗΤΑ", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΤΟΠΟΘΕΣΙΑ", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 20, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Α.Τ.Α.Κ.", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Κ.Α.Ε.Κ.", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΑΡ.ΚΤΗΜ.ΤΕΜ.", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΧΑΡΤΟΓΡΑΦΙΚΟ", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }),
+                                            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ΕΚΤΑΣΗ (Ha)", font: "Arial", bold: true })], alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } })
                                         ]
                                     }),
                                     ...agreement.fields.map((field, index) => new TableRow({
@@ -793,92 +716,58 @@
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: `2. ΔΙΑΡΚΕΙΑ ΜΙΣΘΩΣΗΣ: Η μίσθωση αρχίζει από ${rentalStartDate} και λήγει
-την ${rentalEndDate}σύμφωνα με το άρθρο 620 ΑΚ, με δυνατότητα παράτασης κατόπιν συμφωνίας.`,
+                                        text: `2. ΔΙΑΡΚΕΙΑ ΜΙΣΘΩΣΗΣ: Η μίσθωση αρχίζει από ${rentalStartDate} και λήγει την ${rentalEndDate} σύμφωνα με το άρθρο 620 ΑΚ, με δυνατότητα παράτασης κατόπιν συμφωνίας.`,
                                         size: 22,
-                                        font: "Arial"
+                                        font: "Arial",
+                                        bold: true
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { before: 200, after: 100 }
                             }),
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: "3. ΜΙΣΘΩΜΑ: Το μίσθωμα είναι ποσοστιαίο % και ορίζεται όπως δηλώνεται ως δαπάνη στο
-Έντυπο Ε3 του μισθωτή . Το μίσθωμα για τον εκμισθωτή δεν μπορεί να είναι μικρότερο από
-τα τεκμαρτά εισοδήματα, όπως ορίζονται στο άρθρο 40 του Ν. 4172/2013 (ΦΕΚ) και
-δηλώνεται στο Έντυπο Ε2 της ΑΑΔΕ. Σε περίπτωση δωρεάν παραχώρησης (χρησιδανείου),
-π.χ. από γονέα σε τέκνο, σύζυγο σε σύζυγο ή αμοιβαία ανταλλαγή χρήσης, η παραχώρηση
-γίνεται δωρεάν ως χρησιδάνειο (άρθρο 810 ΑΚ), χωρίς χρηματικό ή άλλο αντάλλαγμα, και
-δεν υπολογίζεται τεκμαρτό εισόδημα, εφόσον το αγροτεμάχιο χρησιμοποιείται για αγροτική
-δραστηριότητα (άρθρο 39 παρ. 4 Ν. 4172/2013). Αλλιώς, το τεκμαρτό εισόδημα είναι 3% της
-αντικειμενικής αξίας.",
+                                        text: "3. ΜΙΣΘΩΜΑ: Το μίσθωμα είναι ποσοστιαίο % και ορίζεται όπως δηλώνεται ως δαπάνη στο Έντυπο Ε3 του μισθωτή. Το μίσθωμα για τον εκμισθωτή δεν μπορεί να είναι μικρότερο από τα τεκμαρτά εισοδήματα, όπως ορίζονται στο άρθρο 40 του Ν. 4172/2013 (ΦΕΚ) και δηλώνεται στο Έντυπο Ε2 της ΑΑΔΕ. Σε περίπτωση δωρεάν παραχώρησης (χρησιδανείου), π.χ. από γονέα σε τέκνο, σύζυγο σε σύζυγο ή αμοιβαία ανταλλαγή χρήσης, η παραχώρηση γίνεται δωρεάν ως χρησιδάνειο (άρθρο 810 ΑΚ), χωρίς χρηματικό ή άλλο αντάλλαγμα, και δεν υπολογίζεται τεκμαρτό εισόδημα, εφόσον το αγροτεμάχιο χρησιμοποιείται για αγροτική δραστηριότητα (άρθρο 39 παρ. 4 Ν. 4172/2013). Αλλιώς, το τεκμαρτό εισόδημα είναι 3% της αντικειμενικής αξίας.",
                                         size: 22,
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ:Η μίσθωση συνάπτεται με σκοπό την καλλιέργεια του/των
-αγροτεμαχίου/ων από τον μισθωτή για την εκτέλεση γεωργικών δραστηριοτήτων, σύμφωνα
-με την ισχύουσα νομοθεσία. Επιπλέον, η μίσθωση παρέχει τη δυνατότητα στον μισθωτή να
-υποβάλει Ενιαία Αίτηση Ενίσχυσης (ΕΑΕ) μέσω του ΟΠΕΚΕΠΕ, για την ενεργοποίηση
-δικαιωμάτων βασικής ενίσχυσης και συναφών ενισχύσεων της Κοινής Αγροτικής Πολιτικής
-(ΚΑΠ) 2023-2027, σύμφωνα με τον Καν. ΕΕ 1307/2013 και τον Ν. 4684/2020. Υπεκμίσθωση
-του αγροτεμαχίου επιτρέπεται μόνο με προηγούμενη έγγραφη συναίνεση του εκμισθωτή,
-σύμφωνα με το άρθρο 624 ΑΚ.",
+                                        text: "4. ΣΚΟΠΟΣ ΜΙΣΘΩΣΗΣ: Η μίσθωση συνάπτεται με σκοπό την καλλιέργεια του/των αγροτεμαχίου/ων από τον μισθωτή για την εκτέλεση γεωργικών δραστηριοτήτων, σύμφωνα με την ισχύουσα νομοθεσία. Επιπλέον, η μίσθωση παρέχει τη δυνατότητα στον μισθωτή να υποβάλει Ενιαία Αίτηση Ενίσχυσης (ΕΑΕ) μέσω του ΟΠΕΚΕΠΕ, για την ενεργοποίηση δικαιωμάτων βασικής ενίσχυσης και συναφών ενισχύσεων της Κοινής Αγροτικής Πολιτικής (ΚΑΠ) 2023-2027, σύμφωνα με τον Καν. ΕΕ 1307/2013 και τον Ν. 4684/2020. Υπεκμίσθωση του αγροτεμαχίου επιτρέπεται μόνο με προηγούμενη έγγραφη συναίνεση του εκμισθωτή, σύμφωνα με το άρθρο 624 ΑΚ.",
                                         size: 22,
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: "5. ΥΠΟΧΡΕΩΣΕΙΣ ΜΙΣΘΩΤΗ - ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ:Ο Μισθωτής υποχρεούται να
-χρησιμοποιεί το μίσθιο με επιμέλεια, σύμφωνα με τον προορισμό του, και να το διατηρεί σε
-κατάσταση κατάλληλη για τη συμφωνημένη χρήση.",
+                                        text: "5. ΥΠΟΧΡΕΩΣΕΙΣ ΜΙΣΘΩΤΗ - ΚΑΛΗ ΧΡΗΣΗ ΤΟΥ ΜΙΣΘΙΟΥ: Ο μισθωτής υποχρεούται να χρησιμοποιεί το μίσθιο με επιμέλεια, σύμφωνα με τον προορισμό του, και να το διατηρεί σε κατάσταση κατάλληλη για τη συμφωνημένη χρήση.",
                                         size: 22,
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: "6. ΤΕΛΙΚΕΣ ΔΙΑΤΑΞΕΙΣ: Το παρόν συμφωνητικό διαβάστηκε και έγινε αμοιβαία αποδεκτό
-από τους συμβαλλόμενους. Κάθε συμβαλλόμενος έλαβε ένα (1) όμοιο αντίτυπο, το οποίο
-έχει πλήρη νομική ισχύ.",
+                                        text: "6. ΤΕΛΙΚΕΣ ΔΙΑΤΑΞΕΙΣ: Το παρόν συμφωνητικό διαβάστηκε και έγινε αμοιβαία αποδεκτό από τους συμβαλλόμενους. Κάθε συμβαλλόμενος έλαβε ένα (1) όμοιο αντίτυπο, το οποίο έχει πλήρη νομική ισχύ.",
                                         size: 22,
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 200 }
                             }),
                             new Paragraph({
                                 children: [
@@ -889,7 +778,8 @@
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.CENTER,
+                                spacing: { before: 200, after: 100 }
                             }),
                             new Table({
                                 width: { size: 100, type: WidthType.PERCENTAGE },
@@ -908,9 +798,7 @@
                                                     new Paragraph({
                                                         children: [
                                                             new TextRun({
-                                                                text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
-                                                            ΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\n
-                                                            με Α.Δ.Τ.:________________`,
+                                                                text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ\nΕΚΜΙΣΘΩΤΗΣ ${agreement.owner.full_name}\nμε Α.Δ.Τ.: ________________`,
                                                                 size: 20,
                                                                 font: "Arial"
                                                             })
@@ -925,9 +813,7 @@
                                                     new Paragraph({
                                                         children: [
                                                             new TextRun({
-                                                                text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ
-                                                            ΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\n 
-                                                            με Α.Δ.Τ.:${tenant.identity_number || '-'}`,
+                                                                text: `ΘΕΩΡΗΘΗΚΕ ΤΟ ΓΝΗΣΙΟ ΤΗΣ ΥΠΟΓΡΑΦΗΣ\nΜΙΣΘΩΤΗΣ ${tenant.first_name || 'Unknown'} ${tenant.last_name || 'Tenant'} ${tenant.father_name ? 'του ' + tenant.father_name : ''}\nμε Α.Δ.Τ.: ${tenant.identity_number || '-'}`,
                                                                 size: 20,
                                                                 font: "Arial"
                                                             })
@@ -943,82 +829,13 @@
                             new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: "                                   ",
-                                        size: 22,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
                                         text: "Για το γνήσιο των υπογραφών",
                                         size: 22,
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { before: 200, after: 100 }
                             }),
                             new Paragraph({
                                 children: [
@@ -1028,19 +845,20 @@
                                         font: "Arial"
                                     })
                                 ],
-                                alignment: AlignmentType.JUSTIFIED
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 100 }
                             }),
                             new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως
-υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
-                                    size: 20,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED
-                        })
+                                children: [
+                                    new TextRun({
+                                        text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
+                                        size: 20,
+                                        font: "Arial"
+                                    })
+                                ],
+                                alignment: AlignmentType.JUSTIFIED,
+                                spacing: { after: 200 }
+                            })
                         ];
 
                         if (index < allAgreementsData.length - 1) {
