@@ -320,7 +320,7 @@
                 throw new Error('Required libraries (docx.js or FileSaver.js) are not loaded.');
             }
 
-            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = docx;
+            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, Footer } = docx;
 
             const rentalStartDate = formatGreekDate(agreement.rental_start_date);
             const rentalEndDate = formatGreekDate(agreement.rental_end_date);
@@ -331,6 +331,23 @@
 
             const doc = new Document({
                 sections: [{
+                    footers: {
+                        default: new Footer({
+                            children: [
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
+                                            size: 20,
+                                            font: "Arial"
+                                        })
+                                    ],
+                                    alignment: AlignmentType.JUSTIFIED,
+                                    spacing: { after: 100 }
+                                })
+                            ]
+                        })
+                    },
                     children: [
                         new Paragraph({
                             children: [
@@ -561,17 +578,6 @@
                             ],
                             alignment: AlignmentType.JUSTIFIED,
                             spacing: { after: 100 }
-                        }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
-                                    size: 20,
-                                    font: "Arial"
-                                })
-                            ],
-                            alignment: AlignmentType.JUSTIFIED,
-                            spacing: { after: 200 }
                         })
                     ]
                 }]
@@ -598,10 +604,27 @@
                 return;
             }
 
-            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = docx;
+            const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, Footer } = docx;
 
             const doc = new Document({
                 sections: [{
+                    footers: {
+                        default: new Footer({
+                            children: [
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({
+                                            text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
+                                            size: 20,
+                                            font: "Arial"
+                                        })
+                                    ],
+                                    alignment: AlignmentType.JUSTIFIED,
+                                    spacing: { after: 100 }
+                                })
+                            ]
+                        })
+                    },
                     children: allAgreementsData.flatMap((data, index) => {
                         const { agreement, tenant, tenantTin } = data;
 
@@ -845,17 +868,6 @@
                                 ],
                                 alignment: AlignmentType.JUSTIFIED,
                                 spacing: { after: 100 }
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: `ΥΠΟΣΗΜΕΙΩΣΗ: Το ποσό του μισθώματος δύναται να αναζητηθεί στο Έντυπο Ε3 του μισθωτή, όπως υποβάλλεται στην Ανεξάρτητη Αρχή Δημοσίων Εσόδων (ΑΑΔΕ).`,
-                                        size: 20,
-                                        font: "Arial"
-                                    })
-                                ],
-                                alignment: AlignmentType.JUSTIFIED,
-                                spacing: { after: 200 }
                             })
                         ];
 
